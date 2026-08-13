@@ -1,0 +1,267 @@
+/* Studio chrome. Deliberately plain CSS and namespaced under `studio-`: the preview surface belongs
+   to the generated spec, and nothing here should leak into it. */
+
+.studio-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  color: #10121a;
+  background: #f4f5f8;
+}
+
+.studio-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: #10121a;
+  color: #f4f5f8;
+}
+
+.studio-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.studio-targets {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 8%);
+}
+
+.studio-target {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: rgb(244 245 248 / 70%);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.studio-target[aria-pressed='true'] {
+  background: #f4f5f8;
+  color: #10121a;
+  font-weight: 600;
+}
+
+.studio-model {
+  margin-left: auto;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(244 245 248 / 60%);
+}
+
+.studio-body {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  min-height: 0;
+}
+
+.studio-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px;
+  overflow-y: auto;
+  border-right: 1px solid #dfe1e8;
+  background: #fff;
+}
+
+.studio-blurb {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #5b6072;
+}
+
+.studio-prompt {
+  min-height: 110px;
+  padding: 10px;
+  border: 1px solid #dfe1e8;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.studio-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.studio-button {
+  padding: 8px 14px;
+  border: 1px solid #dfe1e8;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.studio-button--primary {
+  border-color: #10121a;
+  background: #10121a;
+  color: #fff;
+  font-weight: 600;
+}
+
+.studio-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.studio-status {
+  font-size: 12px;
+  color: #5b6072;
+}
+
+.studio-status--error {
+  color: #b4232a;
+}
+
+.studio-section-title {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8a8fa3;
+}
+
+.studio-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.studio-example {
+  padding: 8px 10px;
+  border: 1px solid #dfe1e8;
+  border-radius: 8px;
+  background: #fbfbfd;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+
+.studio-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-issue {
+  padding: 6px 8px;
+  border-left: 3px solid #d6a419;
+  border-radius: 0 6px 6px 0;
+  background: #fdf7e6;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.studio-issue--error {
+  border-left-color: #b4232a;
+  background: #fdeceb;
+}
+
+.studio-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.studio-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.studio-tab {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: #5b6072;
+  cursor: pointer;
+}
+
+.studio-tab[aria-pressed='true'] {
+  border-color: #dfe1e8;
+  background: #f4f5f8;
+  color: #10121a;
+  font-weight: 600;
+}
+
+.studio-code {
+  max-height: 340px;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid #dfe1e8;
+  border-radius: 8px;
+  background: #fbfbfd;
+  font-family: ui-monospace, sfmono-regular, menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.studio-preview {
+  min-width: 0;
+  padding: 20px;
+  overflow: auto;
+}
+
+/* The dashboard target's own layout — `@graphysdk/json-render` hands over charts, not placement. */
+.studio-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
+}
+
+.studio-empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 13px;
+  color: #8a8fa3;
+}
+
+.studio-preview-error {
+  padding: 16px;
+  border: 1px solid #f0b6b3;
+  border-radius: 8px;
+  background: #fdeceb;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #7c1f1f;
+}
+
+.studio-preview-error p {
+  margin: 6px 0 0;
+  font-family: ui-monospace, sfmono-regular, menlo, monospace;
+  font-size: 12px;
+}

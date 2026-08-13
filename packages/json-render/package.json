@@ -1,0 +1,118 @@
+{
+  "name": "@graphysdk/json-render",
+  "author": "Graphy",
+  "description": "json-render schema, catalog and renderer for Graphy grammar-of-graphics charts",
+  "homepage": "https://docs.graphy.dev/sdk-next/quickstart",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "keywords": [
+    "graphy",
+    "json-render",
+    "chart",
+    "generative-ui",
+    "ai",
+    "grammar-of-graphics"
+  ],
+  "version": "1.8.0",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE.md",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "local": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./server": {
+      "local": "./src/server.ts",
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.cjs"
+    },
+    "./node": {
+      "local": "./src/node.ts",
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.mjs",
+      "require": "./dist/node.cjs"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "TZ=utc vitest",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@graphysdk/node-renderer": "workspace:*",
+    "@graphysdk/react": "workspace:*",
+    "@graphysdk/viz-engine": "workspace:*",
+    "@json-render/core": "^0.19.0",
+    "react": "^19.0.0",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@graphysdk/node-renderer": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@graphysdk/node-renderer": "workspace:*",
+    "@graphysdk/react": "workspace:*",
+    "@graphysdk/viz-engine": "workspace:*",
+    "@graphytools/eslint-config": "workspace:*",
+    "@graphytools/eslint-plugin-graphy": "workspace:*",
+    "@graphytools/typescript-config": "workspace:*",
+    "@graphytools/vitest-config": "workspace:*",
+    "@json-render/core": "^0.19.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vanilla-extract/vite-plugin": "^5.0.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "rollup-plugin-node-externals": "^8.1.1",
+    "tslib": "^2.8.1",
+    "vite": "^8.1.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "catalog:",
+    "zod": "^4.3.6"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.cjs"
+      },
+      "./server": {
+        "types": "./dist/server.d.ts",
+        "import": "./dist/server.mjs",
+        "require": "./dist/server.cjs"
+      },
+      "./node": {
+        "types": "./dist/node.d.ts",
+        "import": "./dist/node.mjs",
+        "require": "./dist/node.cjs"
+      }
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css,md}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "eslint --max-warnings=0 --fix"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "@graphytools/typescript-config/base.json",
+  "compilerOptions": {
+    "customConditions": ["local"],
+    "lib": ["es2023", "dom"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["shared/**/*.ts"]
+}
