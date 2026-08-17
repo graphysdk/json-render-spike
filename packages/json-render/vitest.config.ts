@@ -5,7 +5,7 @@ import { browserVitestConfig } from '@graphytools/vitest-config';
 
 const globalSetup = Array.isArray(browserVitestConfig.test?.setupFiles) ? browserVitestConfig.test.setupFiles : [];
 
-// Mounting `<Renderer>` reaches the real react-renderer, whose `.css.ts` files need the
+// Mounting the chart component reaches the real react-renderer, whose `.css.ts` files need the
 // vanilla-extract plugin. That plugin compiles them in a separate SSR Vite server which ignores our
 // `local` resolve condition, so workspace deps reached from there fall back to a `dist` that a clean
 // checkout does not have — alias the ones in that graph to their sources.

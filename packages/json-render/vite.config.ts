@@ -7,21 +7,19 @@ import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 
 /**
- * Three entries, split by what each is allowed to pull in: `.` carries the React renderer, `server`
- * stays free of React so an API route can import the schema, and `node` reaches for the optional
- * `@graphysdk/node-renderer` (and with it `@napi-rs/canvas`) that a browser build must never see.
+ * Two entries, split by what each is allowed to pull in: `.` carries the React component, and
+ * `server` stays free of React so an API route can compose the catalog entry.
  */
 const ENTRIES = {
   index: path.resolve(__dirname, 'src/index.ts'),
   server: path.resolve(__dirname, 'src/server.ts'),
-  node: path.resolve(__dirname, 'src/node.ts'),
 };
 
 export default defineConfig({
   plugins: [
     nodeExternals({ devDeps: true }),
     // Per-file declarations rather than a rollup: api-extractor cannot resolve the external
-    // `@graphysdk/react` package subpaths the renderer entry re-exports types through.
+    // `@graphysdk/react` package subpaths the component entry re-exports types through.
     dts({
       tsconfigPath: './tsconfig.build.json',
       rollupTypes: false,

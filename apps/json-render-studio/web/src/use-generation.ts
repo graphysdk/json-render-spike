@@ -27,7 +27,7 @@ export interface GenerationState {
 }
 
 export interface GenerationControls extends GenerationState {
-  generate: (targetId: string, prompt: string) => Promise<void>;
+  generate: (prompt: string) => Promise<void>;
   stop: () => void;
   reset: () => void;
 }
@@ -44,8 +44,8 @@ const IDLE: GenerationState = {
 /**
  * Streams JSONL patches into a spec.
  *
- * Spec-shape-agnostic on purpose: every target's spec is JSON assembled by the same patch protocol,
- * so the hook can serve the element tree and the dashboard alike. Only the preview knows the shape.
+ * Spec-shape-agnostic on purpose: a spec is JSON assembled by a patch protocol, and nothing about
+ * assembling it depends on what the JSON means. Only the preview knows the shape.
  *
  * Patches land far faster than a chart can compile, so partial specs are flushed on an interval
  * rather than per patch — without it every chart on screen recompiles on every line of the stream.
@@ -68,7 +68,7 @@ export function useGeneration(): GenerationControls {
   }, [stop]);
 
   const generate = useCallback(
-    async (targetId: string, prompt: string) => {
+    async (prompt: string) => {
       stop();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -92,7 +92,6 @@ export function useGeneration(): GenerationControls {
 
       try {
         const body = await openGenerationStream({
-          target: targetId,
           prompt,
           currentSpec: previousSpec,
           signal: controller.signal,

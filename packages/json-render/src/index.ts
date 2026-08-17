@@ -1,53 +1,16 @@
 /**
- * `@graphysdk/json-render` — a json-render schema whose spec is a set of grammar-of-graphics charts,
- * plus the React renderer that paints them.
+ * `@graphysdk/json-render` — a Graphy chart as one component in a json-render catalog.
  *
- * The spec carries no chart-type enum: a chart is an aesthetic mapping, a stack of geom layers, and
- * the scales those layers are positioned by, read through a coordinate system. Grouped bars are
- * `bar` with `position: 'dodge'`; a donut is `bar` under polar coords. That keeps the catalog small
- * and the reachable chart space large.
+ * Spread `graphyChartComponentDefinition` into a host schema's components and pair it with
+ * `GraphyChartComponent` in the registry, and a model can author charts beside the host's own
+ * `Card` and `Table`, with the host doing the placing.
  *
- * Charts only: where they sit is the caller's to decide, whether that is a grid of their own or a
- * page schema whose catalog already has one.
+ * The chart carries no chart-type enum: it is an aesthetic mapping, a stack of geom layers, and the
+ * scales those layers are positioned by, read through a coordinate system. Grouped bars are `bar`
+ * with `position: 'dodge'`; a donut is `bar` under polar coords. That keeps the catalog entry small
+ * enough to sit in a prompt beside every other component, and the reachable chart space large.
  *
- * Use the `/server` entry where React must not be pulled in, and `/node` to rasterise a spec.
+ * Use the `/server` entry where React must not be pulled in.
  */
-export {
-  type CoordDefinition,
-  type GeomDefinition,
-  type ScaleDefinition,
-  standardCoordDefinitions,
-  standardGeomDefinitions,
-  standardScaleDefinitions,
-  standardStatDefinitions,
-  standardTransformDefinitions,
-  type StatDefinition,
-  type TransformDefinition,
-} from './catalog';
-export { GraphyChartComponent, type GraphyChartComponentRenderProps } from './chart-component';
-export {
-  graphyChartComponentDefinition,
-  type GraphyChartComponentProps,
-  graphyChartPropsSchema,
-  resolveEmbeddedChartInput,
-} from './embedded-chart';
-export { ChartRenderer, type ChartRendererProps, Renderer, type RendererProps } from './renderer';
-export { type GraphySchema, schema } from './schema';
-export type {
-  GraphyChart,
-  GraphyCoord,
-  GraphyDataset,
-  GraphyDocument,
-  GraphyLayer,
-  GraphyScale,
-  GraphySpec,
-  GraphyTransform,
-} from './spec.types';
-export { resolveChartInput, toGraphData, toSpecInput } from './to-spec-input';
-export {
-  type GraphyIssue,
-  type GraphyIssueCode,
-  type GraphyIssueSeverity,
-  type GraphyValidationResult,
-  validateGraphySpec,
-} from './validate';
+export { GraphyChartComponent, type GraphyChartComponentRenderProps } from './embedded/component';
+export * from './server';

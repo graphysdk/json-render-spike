@@ -1,35 +1,21 @@
 import { z } from 'zod';
 
 /**
- * A geom entry: the parameters that geom accepts, plus the guidance a model needs to pick it.
+ * One entry in the grammar: the parameters it accepts, plus the guidance a model needs to pick it.
  *
- * The zod field is named `props` on every catalog entry because that is the key json-render's
- * `s.propsOf()` resolves; on the spec side the same object is `params` for geoms and coords, and
- * `options` for scales and transforms, matching viz-engine's own vocabulary. Paint — fill, border,
- * corner rounding — is not a geom param: it lives in the stylesheet, so nothing here duplicates a
- * style knob.
+ * The zod field is named `props` because that is the key a json-render schema's `propsOf()`
+ * resolves, so these definitions drop into a host catalog unchanged. On the spec side the same
+ * object is `params` for geoms and coords, and `options` for scales and transforms, matching
+ * viz-engine's own vocabulary. Paint — fill, border, corner rounding — is not a geom param: it
+ * lives in the stylesheet, so nothing here duplicates a style knob.
  */
-export interface GeomDefinition {
+export interface CatalogDefinition {
   props: z.ZodType;
   description: string;
 }
 
+/** A stat is named, never parameterised — hence a description and nothing else. */
 export interface StatDefinition {
-  description: string;
-}
-
-export interface ScaleDefinition {
-  props: z.ZodType;
-  description: string;
-}
-
-export interface CoordDefinition {
-  props: z.ZodType;
-  description: string;
-}
-
-export interface TransformDefinition {
-  props: z.ZodType;
   description: string;
 }
 
@@ -37,7 +23,7 @@ export interface TransformDefinition {
  * The five built-in geoms. A chart is a mapping plus a stack of these — there is no chart-type
  * enum, so "grouped bars" is `bar` with `position: 'dodge'` and a pie is `bar` under polar coords.
  */
-export const standardGeomDefinitions: Record<string, GeomDefinition> = {
+export const standardGeomDefinitions: Record<string, CatalogDefinition> = {
   point: {
     props: z.object({}),
     description:
@@ -90,7 +76,7 @@ export const standardStatDefinitions: Record<string, StatDefinition> = {
 };
 
 /** Coordinate systems. The same layers read very differently under each. */
-export const standardCoordDefinitions: Record<string, CoordDefinition> = {
+export const standardCoordDefinitions: Record<string, CatalogDefinition> = {
   cartesian: {
     props: z.object({
       xLimits: z.tuple([z.number(), z.number()]).nullable(),
@@ -120,7 +106,7 @@ export const standardCoordDefinitions: Record<string, CoordDefinition> = {
 };
 
 /** Data transforms applied before the layers are compiled. */
-export const standardTransformDefinitions: Record<string, TransformDefinition> = {
+export const standardTransformDefinitions: Record<string, CatalogDefinition> = {
   reshape: {
     props: z.object({
       reshape: z.array(z.string()).nullable(),
@@ -173,26 +159,11 @@ export const standardTransformDefinitions: Record<string, TransformDefinition> =
   },
 };
 
-const continuousScaleOptions = z.object({
-  transform: z.enum(['linear', 'log', 'sqrt']).nullable(),
-  reverse: z.boolean().nullable(),
-  nice: z.boolean().nullable(),
-  zero: z.boolean().nullable(),
-  clamp: z.boolean().nullable(),
-  domainMin: z.number().nullable(),
-  domainMax: z.number().nullable(),
-  range: z.array(z.union([z.number(), z.string()])).nullable(),
-  scheme: z.string().nullable(),
-  interpolate: z.enum(['rgb', 'lab', 'hcl', 'hsl']).nullable(),
-  domainMid: z.number().nullable(),
-  symmetric: z.boolean().nullable(),
-});
-
 /**
  * Scale types, keyed as they appear on a scale node. Every mapped position aesthetic needs one —
  * they are never auto-created, and a missing position scale yields NaN positions.
  */
-export const standardScaleDefinitions: Record<string, ScaleDefinition> = {
+export const standardScaleDefinitions: Record<string, CatalogDefinition> = {
   inferred: {
     props: z.object({}),
     description:
@@ -200,7 +171,20 @@ export const standardScaleDefinitions: Record<string, ScaleDefinition> = {
   },
 
   continuous: {
-    props: continuousScaleOptions,
+    props: z.object({
+      transform: z.enum(['linear', 'log', 'sqrt']).nullable(),
+      reverse: z.boolean().nullable(),
+      nice: z.boolean().nullable(),
+      zero: z.boolean().nullable(),
+      clamp: z.boolean().nullable(),
+      domainMin: z.number().nullable(),
+      domainMax: z.number().nullable(),
+      range: z.array(z.union([z.number(), z.string()])).nullable(),
+      scheme: z.string().nullable(),
+      interpolate: z.enum(['rgb', 'lab', 'hcl', 'hsl']).nullable(),
+      domainMid: z.number().nullable(),
+      symmetric: z.boolean().nullable(),
+    }),
     description:
       'Numeric scale. Set `transform: "log"` for a log axis and `"sqrt"` for a square-root one. On `color` it becomes a ramp: pass `scheme` (e.g. "viridis", "RdBu"), or `domainMid` with `symmetric` for a diverging ramp.',
   },

@@ -1,8 +1,9 @@
 import { type FormEvent, type ReactElement, useEffect, useState } from 'react';
 
 import { fetchStatus, fetchSystemPrompt, type StudioStatus } from './api';
+import { EXAMPLE_PROMPTS, findPageIssues, isPageEmpty } from './page-spec';
+import { PagePreview } from './PagePreview';
 import { PreviewBoundary } from './PreviewBoundary';
-import { findStudioTarget } from './targets';
 import { type GenerationControls, useGeneration } from './use-generation';
 
 type InspectorPanel = 'spec' | 'stream' | 'prompt';
@@ -13,66 +14,44 @@ const INSPECTOR_PANELS: Array<{ id: InspectorPanel; label: string }> = [
   { id: 'prompt', label: 'System prompt' },
 ];
 
-const DEFAULT_TARGET_ID = 'webapp';
+const BLURB =
+  'shadcn/ui components with state and actions. GraphyChart is one of the 37, and carries the whole grammar of graphics.';
 
 export const App = (): ReactElement => {
   const [status, setStatus] = useState<StudioStatus | null>(null);
-  const [targetId, setTargetId] = useState(DEFAULT_TARGET_ID);
   const [prompt, setPrompt] = useState('');
   const [panel, setPanel] = useState<InspectorPanel>('spec');
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
 
   const generation = useGeneration();
-  const target = findStudioTarget(targetId);
   const streaming = generation.status === 'streaming';
-  const hasSpec = generation.spec !== null && target !== undefined && !target.isEmpty(generation.spec);
+  const hasSpec = generation.spec !== null && !isPageEmpty(generation.spec);
 
   useEffect(() => {
     fetchStatus().then(setStatus, () => setStatus(null));
   }, []);
 
-  // The prompt is the catalog's product; refetching per target is how you see a catalog edit land.
+  // The prompt is the catalog's product; refetching on open is how you see a catalog edit land.
   useEffect(() => {
     setSystemPrompt(null);
     if (panel === 'prompt') {
-      fetchSystemPrompt(targetId).then(setSystemPrompt, () => setSystemPrompt('Could not load the system prompt.'));
+      fetchSystemPrompt().then(setSystemPrompt, () => setSystemPrompt('Could not load the system prompt.'));
     }
-  }, [panel, targetId]);
-
-  const selectTarget = (nextTargetId: string) => {
-    if (nextTargetId !== targetId) {
-      // Specs are per-schema, so a target switch cannot carry the old one forward.
-      generation.reset();
-      setTargetId(nextTargetId);
-    }
-  };
+  }, [panel]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (prompt.trim() !== '' && !streaming) {
-      void generation.generate(targetId, prompt);
+      void generation.generate(prompt);
     }
   };
 
-  const issues = generation.spec === null || target === undefined ? [] : target.findIssues(generation.spec);
+  const issues = generation.spec === null ? [] : findPageIssues(generation.spec);
 
   return (
     <div className="studio-shell">
       <header className="studio-header">
         <h1 className="studio-title">json-render studio</h1>
-        <div className="studio-targets">
-          {(status?.targets ?? []).map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className="studio-target"
-              aria-pressed={option.id === targetId}
-              onClick={() => selectTarget(option.id)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
         <span className="studio-model">{status === null ? 'connecting…' : status.model}</span>
       </header>
 
@@ -84,7 +63,7 @@ export const App = (): ReactElement => {
             </p>
           )}
 
-          <p className="studio-blurb">{status?.targets.find((option) => option.id === targetId)?.blurb}</p>
+          <p className="studio-blurb">{BLURB}</p>
 
           <form className="studio-inspector" onSubmit={submit}>
             <textarea
@@ -114,11 +93,11 @@ export const App = (): ReactElement => {
             {generation.error ?? describeProgress(generation)}
           </p>
 
-          {!hasSpec && !streaming && target !== undefined && (
+          {!hasSpec && !streaming && (
             <>
               <h2 className="studio-section-title">Try</h2>
               <div className="studio-examples">
-                {target.examples.map((example) => (
+                {EXAMPLE_PROMPTS.map((example) => (
                   <button key={example} type="button" className="studio-example" onClick={() => setPrompt(example)}>
                     {example}
                   </button>
@@ -162,8 +141,10 @@ export const App = (): ReactElement => {
         </aside>
 
         <main className="studio-preview">
-          {hasSpec && target !== undefined && generation.spec !== null ? (
-            <PreviewBoundary resetKey={targetId}>{target.renderPreview(generation.spec, streaming)}</PreviewBoundary>
+          {hasSpec && generation.spec !== null ? (
+            <PreviewBoundary resetKey={generation.status}>
+              <PagePreview spec={generation.spec} isStreaming={streaming} />
+            </PreviewBoundary>
           ) : (
             <p className="studio-empty">{streaming ? 'Generating…' : 'Nothing generated yet.'}</p>
           )}

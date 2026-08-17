@@ -1,18 +1,38 @@
 # @graphysdk/json-render
 
-A [json-render](https://github.com/vercel-labs/json-render) schema whose spec is a set of Graphy charts, plus the React renderer that paints them.
+A Graphy chart as one component in a [json-render](https://github.com/vercel-labs/json-render) catalog — beside shadcn's `Card` and `Table`, with the host schema doing the placing.
 
 Use it when you own the LLM call and want charts inside your own generative-UI stack. If you'd rather call a hosted chart-authoring agent, use [`@graphysdk/agents-sdk`](../agents-sdk) instead — that's the same destination by a different road.
 
 ## Install
 
 ```bash
-npm install @graphysdk/json-render @json-render/core @graphysdk/react
+npm install @graphysdk/json-render @graphysdk/react
 ```
 
-## The spec is a grammar, not a chart-type enum
+## Adding the chart to your catalog
 
-There is no `type: 'bar'` field. A chart is an aesthetic mapping, a stack of geom layers, and the scales those layers are positioned by, read through a coordinate system:
+Spread the catalog entry into your components map, and pair it with the component in your registry:
+
+```ts
+import { graphyChartComponentDefinition } from '@graphysdk/json-render/server';
+
+const catalog = defineCatalog(schema, {
+  components: { ...shadcnComponentDefinitions, GraphyChart: graphyChartComponentDefinition },
+});
+```
+
+```tsx
+import { GraphyChartComponent } from '@graphysdk/json-render';
+
+const registry = defineRegistry({ ...shadcnComponents, GraphyChart: GraphyChartComponent });
+```
+
+The entry carries its own description — every geom, scale, coord and transform with its parameter shapes, the aesthetic channels, and the composition rules — so the model learns the grammar from your existing prompt with no extra section to write.
+
+## The chart is a grammar, not a chart-type enum
+
+There is no `type: 'bar'` prop. A chart is an aesthetic mapping, a stack of geom layers, and the scales those layers are positioned by, read through a coordinate system:
 
 | To draw         | Author                                         |
 | --------------- | ---------------------------------------------- |
@@ -24,115 +44,59 @@ There is no `type: 'bar'` field. A chart is an aesthetic mapping, a stack of geo
 | Donut           | as pie, with `params: { innerRadius: 0.5 }`    |
 | Combo           | a `bar` layer and a `line` layer on one chart  |
 
-Five geoms and three coordinate systems reach far more chart shapes than an enum of the same size, and the catalog stays small enough to fit in a prompt.
+Five geoms and three coordinate systems reach far more chart shapes than an enum of the same size, and the entry stays small enough to sit in a prompt beside every other component.
 
-## Generating a spec
+The whole grammar is reachable from the props — geom `params`, layer-local `mapping`, `yScaleType` for a second y axis, scale `options` and `transforms` — so a chart that grows past what a page usually asks for doesn't have to leave the page to grow:
+
+```json
+{
+  "type": "GraphyChart",
+  "props": {
+    "title": "Revenue by month",
+    "rows": [{ "month": "Jan", "region": "EMEA", "revenue": 120 }],
+    "mapping": { "x": "month", "y": "revenue", "color": "region" },
+    "layers": [{ "geom": "line", "params": { "interpolate": "linear" } }],
+    "scales": [
+      { "aesthetic": "x", "scaleType": "inferred" },
+      { "aesthetic": "y", "scaleType": "continuous", "options": { "zero": true } },
+      { "aesthetic": "color", "scaleType": "palette" }
+    ]
+  }
+}
+```
+
+Data goes in inline as `rows`. A chart sizes to its cell, which a page layout rarely constrains vertically — hence the pixel `height` prop, defaulting to 320.
+
+## Rendering without React
+
+`resolveEmbeddedChartInput` projects the props onto a viz-engine `SpecInput` and its data, so the same props rasterise server-side as they do in a page:
 
 ```ts
-import { defineCatalog } from '@json-render/core';
-import {
-  schema,
-  standardCoordDefinitions,
-  standardGeomDefinitions,
-  standardScaleDefinitions,
-  standardStatDefinitions,
-  standardTransformDefinitions,
-} from '@graphysdk/json-render/server';
+import { resolveEmbeddedChartInput } from '@graphysdk/json-render/server';
 
-const catalog = defineCatalog(schema, {
-  geoms: standardGeomDefinitions,
-  stats: standardStatDefinitions,
-  scales: standardScaleDefinitions,
-  coords: standardCoordDefinitions,
-  transforms: standardTransformDefinitions,
-});
-
-const systemPrompt = catalog.prompt();
+const { input, data } = resolveEmbeddedChartInput(props);
+const result = createCompiler().compile({ input, data });
 ```
 
-The model emits JSONL patches that build the spec incrementally, so each chart appears as its line lands:
-
-```jsonl
-{"op":"add","path":"/document","value":{"title":"Q3 review"}}
-{"op":"add","path":"/datasets/sales","value":{"columns":[{"key":"month"},{"key":"revenue"}],"rows":[…]}}
-{"op":"add","path":"/charts","value":[]}
-{"op":"add","path":"/charts/-","value":{"id":"trend","datasetId":"sales","mapping":{"x":"month","y":"revenue"},"layers":[{"geom":"line"}],"scales":[{"aesthetic":"x","scaleType":"inferred"},{"aesthetic":"y","scaleType":"continuous","options":{"zero":true}}]}}
-```
-
-Feed the stream through `createSpecStreamCompiler` from `@json-render/core` as usual.
-
-## Rendering
-
-`Renderer` paints the charts and stops there. It emits one box per chart, as siblings with no container of its own, so the layout is whatever you wrap them in:
-
-```tsx
-import { Renderer } from '@graphysdk/json-render';
-
-<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
-  <Renderer spec={spec} height={320} />
-</div>;
-```
-
-Placing charts one at a time — in a dashboard grid you already own, or beside components that aren't charts — is `ChartRenderer`:
-
-```tsx
-<Grid>
-  {spec.charts.map((chart) => (
-    <Card key={chart.id} title={chart.title}>
-      <ChartRenderer spec={spec} chart={chart} />
-    </Card>
-  ))}
-</Grid>
-```
-
-A chart that fails to compile shows its error in its own box — `<GraphProvider>` already carries an error boundary, so one bad chart never blanks the rest.
-
-## In someone else's catalog
-
-A chart can also be one component in a page schema such as `@json-render/react`'s, beside shadcn's `Card` and `Table`. Spread the catalog entry into the components map and pair it with the component in the registry:
-
-```ts
-components: { ...shadcnComponentDefinitions, GraphyChart: graphyChartComponentDefinition }
-components: { ...shadcnComponents, GraphyChart: GraphyChartComponent }
-```
-
-Same grammar, with the chart's data inline instead of behind a `datasetId` — and the host catalog's own `Grid` and `Card` doing the placing.
-
-## Validating before you render
-
-`validateGraphySpec` checks the invariants that produce an empty chart rather than a parse failure — a dataset that isn't defined, a mapped position aesthetic with no scale, a mapping onto a column that doesn't exist (transform-introduced columns included), a secondary-axis layer with no `ySecondary` scale. Feed the issues back into a repair turn:
-
-```ts
-const { valid, issues } = validateGraphySpec(spec);
-```
-
-## Rendering on a server
-
-```ts
-import { renderSpecToPngs } from '@graphysdk/json-render/node';
-
-const pngs = await renderSpecToPngs(spec, { width: 800, height: 450 });
-```
-
-Requires `@graphysdk/node-renderer`, an optional peer.
+A chart's grammar is the compiler's to judge: an unknown column, geom, transform or coord comes back as `{ ok: false, errors }`, each error naming the layer and the registered alternatives.
 
 ## Entry points
 
-| Entry      | Contents                                                      |
-| ---------- | ------------------------------------------------------------- |
-| `.`        | Schema, catalog, spec projection, validator, React `Renderer` |
-| `./server` | The same minus React — safe in API routes and build scripts   |
-| `./node`   | PNG rendering via `@graphysdk/node-renderer`                  |
+| Entry      | Contents                                                                     |
+| ---------- | ---------------------------------------------------------------------------- |
+| `.`        | The catalog entry, the props schema, the projection, and the React component |
+| `./server` | The same minus React — safe in API routes and build scripts                  |
 
 ## Custom geoms
 
-A catalog entry plus a registered plugin is all a custom geom needs to become authorable. Add it to the catalog so it reaches the prompt, and pass the matching plugin to the renderer so it can paint:
+`graphyChartComponentDefinition` is fixed to the five built-in geoms: its props schema reads the geom names out of the catalog once, at import, so spreading an extra entry into `standardGeomDefinitions` afterwards does not widen what a model may author.
 
-```tsx
-const catalog = defineCatalog(schema, {
-  geoms: { ...standardGeomDefinitions, sankey: { props: sankeyParams, description: 'Flow between stages.' } },
-  // …
-});
+Reaching a custom geom today means assembling your own definition from the exported pieces — `standardGeomDefinitions`, `formatCatalogParams`, `CHART_GRAMMAR_RULES` and `AESTHETIC_CHANNELS` are all public for that — and passing the matching plugin to `GraphyChartComponent` so it can paint.
 
-<Renderer spec={spec} plugins={[sankeyPlugin]} />;
+## Package layout
+
+```
+src/
+  grammar/    what a chart is — the catalog, the composition rules, and the projection onto viz-engine
+  embedded/   the json-render integration — props schema, catalog entry, React component
 ```

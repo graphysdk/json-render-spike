@@ -4,7 +4,7 @@ vi.mock('motion/react', () => ({
   useReducedMotion: () => false,
 }));
 
-// jsdom does not provide ResizeObserver, which the renderer's sizing step observes with.
+// jsdom does not provide ResizeObserver, which the sizing step observes with.
 globalThis.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}

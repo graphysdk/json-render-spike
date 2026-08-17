@@ -1,7 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface PreviewBoundaryProps {
-  /** Changing this remounts the boundary, clearing an error the last spec caused. */
+  /** Changing this clears an error the last spec caused, so the next one gets a fresh render. */
   resetKey: string;
   children: ReactNode;
 }
@@ -15,8 +15,8 @@ interface PreviewBoundaryState {
  *
  * The whole point of the studio is to see what a model produced, including when that is a page that
  * throws — and a throw inside the preview unmounts the app, which also kills the fetch still
- * streaming into it, so the spec on screen ends up truncated and the real error invisible. The
- * dashboard target gets this for free from `<GraphProvider>`; an element tree has no such boundary.
+ * streaming into it, so the spec on screen ends up truncated and the real error invisible. A chart
+ * carries its own boundary through `<GraphProvider>`; the element tree around it has none.
  */
 export class PreviewBoundary extends Component<PreviewBoundaryProps, PreviewBoundaryState> {
   state: PreviewBoundaryState = { message: null };

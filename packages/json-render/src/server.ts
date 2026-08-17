@@ -1,43 +1,22 @@
 /**
  * Server-safe entry point.
  *
- * Schema, catalog and spec projection only — no React, no renderer. Import this from API routes,
- * server components and build scripts that generate or validate a spec but never paint one.
+ * The grammar, the catalog entry and the spec projection — no React, no renderer. Import this from
+ * API routes, server components and build scripts that compose a catalog or resolve a chart to a
+ * viz-engine spec but never paint one.
  */
+export { graphyChartComponentDefinition } from './embedded/definition';
+export { type GraphyChartComponentProps, graphyChartPropsSchema } from './embedded/props-schema';
+export { resolveEmbeddedChartInput } from './embedded/resolve-input';
+export { type CatalogDefinition, type StatDefinition } from './grammar/catalog';
 export {
-  type CoordDefinition,
-  type GeomDefinition,
-  type ScaleDefinition,
   standardCoordDefinitions,
   standardGeomDefinitions,
   standardScaleDefinitions,
   standardStatDefinitions,
   standardTransformDefinitions,
-  type StatDefinition,
-  type TransformDefinition,
-} from './catalog';
-export {
-  graphyChartComponentDefinition,
-  type GraphyChartComponentProps,
-  graphyChartPropsSchema,
-  resolveEmbeddedChartInput,
-} from './embedded-chart';
-export { type GraphySchema, schema } from './schema';
-export type {
-  GraphyChart,
-  GraphyCoord,
-  GraphyDataset,
-  GraphyDocument,
-  GraphyLayer,
-  GraphyScale,
-  GraphySpec,
-  GraphyTransform,
-} from './spec.types';
-export { resolveChartInput, toGraphData, toSpecInput } from './to-spec-input';
-export {
-  type GraphyIssue,
-  type GraphyIssueCode,
-  type GraphyIssueSeverity,
-  type GraphyValidationResult,
-  validateGraphySpec,
-} from './validate';
+} from './grammar/catalog';
+export type { GraphyChart, GraphyCoord, GraphyLayer, GraphyScale, GraphyTransform } from './grammar/chart.types';
+export { formatCatalogParams } from './grammar/format-params';
+export { AESTHETIC_CHANNELS, CHART_GRAMMAR_RULES } from './grammar/rules';
+export { toSpecInput } from './grammar/to-spec-input';

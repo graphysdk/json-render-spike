@@ -1,13 +1,6 @@
-export interface TargetSummary {
-  id: string;
-  label: string;
-  blurb: string;
-}
-
 export interface StudioStatus {
   model: string;
   hasApiKey: boolean;
-  targets: TargetSummary[];
 }
 
 export async function fetchStatus(): Promise<StudioStatus> {
@@ -18,8 +11,8 @@ export async function fetchStatus(): Promise<StudioStatus> {
   return (await response.json()) as StudioStatus;
 }
 
-export async function fetchSystemPrompt(targetId: string): Promise<string> {
-  const response = await fetch(`/api/system-prompt/${targetId}`);
+export async function fetchSystemPrompt(): Promise<string> {
+  const response = await fetch('/api/system-prompt');
   if (!response.ok) {
     throw new Error(`System prompt request failed (${response.status}).`);
   }
@@ -27,7 +20,6 @@ export async function fetchSystemPrompt(targetId: string): Promise<string> {
 }
 
 export interface GenerateRequest {
-  target: string;
   prompt: string;
   currentSpec: Record<string, unknown> | null;
   signal: AbortSignal;

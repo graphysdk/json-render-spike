@@ -3,7 +3,8 @@ import type { ReactElement } from 'react';
 import { GraphProvider, GraphRenderer } from '@graphysdk/react';
 import type { ColorScheme, CustomPalettesInput, Locale, Plugin } from '@graphysdk/viz-engine';
 
-import { type GraphyChartComponentProps, resolveEmbeddedChartInput } from './embedded-chart';
+import type { GraphyChartComponentProps } from './props-schema';
+import { resolveEmbeddedChartInput } from './resolve-input';
 
 export interface GraphyChartComponentRenderProps {
   props: GraphyChartComponentProps;

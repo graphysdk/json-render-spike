@@ -2,37 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { createCompiler } from '@graphysdk/viz-engine';
 
-import { standardGeomDefinitions } from '../catalog';
-import {
-  graphyChartComponentDefinition,
-  type GraphyChartComponentProps,
-  graphyChartPropsSchema,
-  resolveEmbeddedChartInput,
-} from '../embedded-chart';
+import type { GraphyChartComponentProps } from '../props-schema';
+import { resolveEmbeddedChartInput } from '../resolve-input';
 
-function createLineChartProps(): GraphyChartComponentProps {
-  return {
-    title: 'Revenue by month',
-    subtitle: null,
-    caption: null,
-    height: null,
-    rows: [
-      { month: 'Jan', region: 'EMEA', revenue: 120 },
-      { month: 'Jan', region: 'AMER', revenue: 90 },
-      { month: 'Feb', region: 'EMEA', revenue: 145 },
-      // A model routinely omits a column on a row rather than writing null.
-      { month: 'Feb', revenue: 110 },
-    ],
-    mapping: { x: 'month', y: 'revenue', color: 'region' },
-    layers: [{ geom: 'line', stat: null, position: null }],
-    scales: [
-      { aesthetic: 'x', scaleType: 'inferred' },
-      { aesthetic: 'y', scaleType: 'continuous' },
-      { aesthetic: 'color', scaleType: 'palette' },
-    ],
-    coord: null,
-  };
-}
+import { createLineChartProps } from './fixtures';
 
 describe('resolveEmbeddedChartInput', () => {
   it('takes columns from the union of the row keys', () => {
@@ -41,19 +14,18 @@ describe('resolveEmbeddedChartInput', () => {
     expect(data.columns.map((column) => column.key)).toEqual(['month', 'region', 'revenue']);
   });
 
-  it('drops the nulls a model emits for absent fields', () => {
+  it('leaves an omitted field absent, for the compiler to default', () => {
     const { input } = resolveEmbeddedChartInput(createLineChartProps());
 
-    // A retained null would override the engine's default rather than fall back to it.
     expect(input.layers[0]).toMatchObject({ geom: 'line' });
     expect(input.layers[0]?.stat).toBeUndefined();
     expect(input.layers[0]?.position).toBeUndefined();
     expect(input.coords).toBeUndefined();
   });
 
-  it('survives the fields a model omits rather than nulls', () => {
-    // A host renderer resolves prop expressions and hands them over unvalidated, and `.nullable()`
-    // reads to a model as permission to leave the key out — `coord` especially.
+  it('survives a required prop a host never supplied', () => {
+    // A host renderer resolves prop expressions and hands them over unvalidated, so even `rows` and
+    // `mapping` can arrive absent.
     const sparse = {
       rows: [{ month: 'Jan', revenue: 1 }],
       mapping: { x: 'month', y: 'revenue' },
@@ -87,7 +59,7 @@ describe('resolveEmbeddedChartInput', () => {
   it('compiles a donut, which is a bar under polar coords', () => {
     const props: GraphyChartComponentProps = {
       ...createLineChartProps(),
-      layers: [{ geom: 'bar', stat: null, position: 'stack' }],
+      layers: [{ geom: 'bar', position: 'stack' }],
       scales: [
         { aesthetic: 'x', scaleType: 'discrete' },
         { aesthetic: 'y', scaleType: 'continuous' },
@@ -102,24 +74,36 @@ describe('resolveEmbeddedChartInput', () => {
     expect(result.ok, reason).toBe(true);
     expect(result.ok && result.compiled.spec.coords).toMatchObject({ coordType: 'polar' });
   });
-});
 
-describe('graphyChartComponentDefinition', () => {
-  it('accepts only the geoms the catalog carries', () => {
-    const props = { ...createLineChartProps(), layers: [{ geom: 'sankey', stat: null, position: null }] };
+  it('carries the whole grammar through to the engine spec', () => {
+    const props: GraphyChartComponentProps = {
+      ...createLineChartProps(),
+      layers: [
+        { geom: 'bar', params: { width: 0.8 }, stat: 'sum', position: 'stack' },
+        {
+          geom: 'line',
+          params: { interpolate: 'catmull-rom' },
+          mapping: { y: 'margin' },
+          yScaleType: 'secondary',
+        },
+      ],
+      scales: [
+        { aesthetic: 'x', scaleType: 'discrete' },
+        { aesthetic: 'y', scaleType: 'continuous', options: { zero: true } },
+        { aesthetic: 'ySecondary', scaleType: 'continuous' },
+        { aesthetic: 'color', scaleType: 'palette' },
+      ],
+      transforms: [{ transformType: 'sort', options: { variableName: 'revenue', direction: 'desc' } }],
+      legendPosition: 'bottom',
+    };
 
-    expect(graphyChartPropsSchema.safeParse(props).success).toBe(false);
-    expect(graphyChartPropsSchema.safeParse(createLineChartProps()).success).toBe(true);
-  });
+    const { input } = resolveEmbeddedChartInput(props);
 
-  it('describes every geom by drawing on the catalog rather than restating it', () => {
-    for (const [name, geom] of Object.entries(standardGeomDefinitions)) {
-      expect(graphyChartComponentDefinition.description).toContain(name);
-      expect(graphyChartComponentDefinition.description).toContain(geom.description);
-    }
-  });
-
-  it('has no slots, because a chart takes no children', () => {
-    expect(graphyChartComponentDefinition.slots).toEqual([]);
+    expect(input.layers[0]).toMatchObject({ params: { width: 0.8 }, stat: 'sum' });
+    expect(input.layers[1]).toMatchObject({ mapping: { y: 'margin' }, yScaleType: 'secondary' });
+    expect(input.transforms[0]).toMatchObject({ transformType: 'sort', options: { direction: 'desc' } });
+    // Non-`inferred` scale options flatten onto the engine's scale node rather than staying nested.
+    expect(input.scales[1]).toMatchObject({ scaledAesthetic: 'y', zero: true });
+    expect(input.config.legend).toEqual({ position: 'bottom' });
   });
 });

@@ -31,31 +31,6 @@
   margin: 0;
 }
 
-.studio-targets {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 8%);
-}
-
-.studio-target {
-  padding: 5px 12px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: rgb(244 245 248 / 70%);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.studio-target[aria-pressed='true'] {
-  background: #f4f5f8;
-  color: #10121a;
-  font-weight: 600;
-}
-
 .studio-model {
   margin-left: auto;
   font-size: 12px;
@@ -236,12 +211,6 @@
 }
 
 /* The dashboard target's own layout — `@graphysdk/json-render` hands over charts, not placement. */
-.studio-dashboard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  gap: 16px;
-}
-
 .studio-empty {
   display: grid;
   place-items: center;
