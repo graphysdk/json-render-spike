@@ -8,15 +8,17 @@ import { createLineChartProps } from './fixtures';
 
 describe('graphyChartPropsSchema', () => {
   it('parses props that leave every optional field out, which is what a model emits', () => {
-    // The prompt renders an optional field as `title?`, so models omit rather than null it.
+    // The prompt renders an optional field as `height?`, so models omit rather than null it.
     const omitted = {
       rows: [{ month: 'Jan', revenue: 1 }],
-      mapping: { x: 'month', y: 'revenue' },
-      layers: [{ geom: 'line' }],
-      scales: [
-        { aesthetic: 'x', scaleType: 'inferred' },
-        { aesthetic: 'y', scaleType: 'continuous' },
-      ],
+      spec: {
+        mapping: { x: 'month', y: 'revenue' },
+        layers: [{ type: 'layer', geom: 'line' }],
+        scales: [
+          { type: 'scale', scaledAesthetic: 'x', scaleType: 'inferred' },
+          { type: 'scale', scaledAesthetic: 'y', scaleType: 'continuous' },
+        ],
+      },
     };
 
     const result = graphyChartPropsSchema.safeParse(omitted);
@@ -25,23 +27,45 @@ describe('graphyChartPropsSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('keeps a scale option that sits flat on the node, which is where the engine reads it', () => {
+    const props = createLineChartProps();
+    const scaled = {
+      ...props,
+      spec: {
+        ...props.spec,
+        scales: [{ type: 'scale', scaledAesthetic: 'y', scaleType: 'continuous', zero: true, nice: true }],
+      },
+    };
+
+    const result = graphyChartPropsSchema.safeParse(scaled);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.spec.scales[0]).toMatchObject({ zero: true, nice: true });
+  });
+
   it('rejects a null where a field is merely absent, because the two are not the same input', () => {
     // Absent means "the compiler picks the default". Null is not a value any of these fields takes,
     // and passing one through would overwrite the default rather than fall back to it.
-    const nulled = { ...createLineChartProps(), title: null, layers: [{ geom: 'line', params: null }] };
+    const props = createLineChartProps();
+    const nulled = { ...props, spec: { ...props.spec, layers: [{ type: 'layer', geom: 'line', params: null }] } };
 
     expect(graphyChartPropsSchema.safeParse(nulled).success).toBe(false);
   });
 
   it('accepts only the geoms the catalog carries', () => {
     // Complete but for the geom, so the rejection can only be about the name.
-    const props = {
-      ...createLineChartProps(),
-      layers: [{ geom: 'sankey' }],
-    };
+    const props = createLineChartProps();
+    const unknownGeom = { ...props, spec: { ...props.spec, layers: [{ type: 'layer', geom: 'sankey' }] } };
 
-    expect(graphyChartPropsSchema.safeParse(props).success).toBe(false);
+    expect(graphyChartPropsSchema.safeParse(unknownGeom).success).toBe(false);
     expect(graphyChartPropsSchema.safeParse(createLineChartProps()).success).toBe(true);
+  });
+
+  it('rejects a node that leaves out its own type tag, since the engine dispatches on it', () => {
+    const props = createLineChartProps();
+    const untagged = { ...props, spec: { ...props.spec, layers: [{ geom: 'line' }] } };
+
+    expect(graphyChartPropsSchema.safeParse(untagged).success).toBe(false);
   });
 });
 

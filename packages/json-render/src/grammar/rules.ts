@@ -5,7 +5,9 @@
  * rather than restating them — a rule fixed once is fixed for every surface that teaches it.
  */
 export const CHART_GRAMMAR_RULES = [
-  'There is no chart-type field. A chart is a mapping plus one or more geom layers, read through a coordinate system',
+  'There is no chart-type field. A chart is `rows` — the data, inline — and `spec`: a mapping plus one or more geom layers, read through a coordinate system',
+  'Every node inside `spec` carries its own `type` tag: {"type":"layer","geom":…}, {"type":"scale","scaledAesthetic":…}, {"type":"transform","transformType":…}, {"type":"coord","coordType":…}',
+  'The chart\'s text and legend live in `spec.config` — {"content":{"title":…,"subtitle":…,"caption":…},"legend":{"position":"top"}}',
   'Every chart MUST declare a scale for each mapped position aesthetic (x, y, ySecondary). Position scales are never created for you and a missing one renders nothing',
   'Use scaleType "inferred" for x/y when the column type is obvious; reach for "continuous"/"discrete"/"datetime" only to set domains, transforms or ordering',
   'Map a categorical `color` and give it scaleType "palette" — that is what draws series colors from the shared palette',
@@ -13,8 +15,9 @@ export const CHART_GRAMMAR_RULES = [
   'Horizontal bars are coord "flip" — keep the category on x and flip, never swap the x and y mappings',
   'A pie chart is geom "bar" under coord "polar"; a donut is the same with params.innerRadius between 0 and 1',
   'Combine layers on one chart to build combos — e.g. a "bar" layer plus a "line" layer sharing an x mapping',
-  'A measure on its own axis is a layer with yScaleType "secondary", a layer-local `mapping` naming its column, and a scale for aesthetic "ySecondary"',
-  'A geom\'s own settings go under `params`, a scale\'s and a transform\'s under `options`, never at the top level — a sort is {"transformType":"sort","options":{"variableName":"revenue","direction":"desc"}}',
+  'A measure on its own axis is a layer with yScaleType "secondary", a layer-local `mapping` naming its column, and a scale for scaledAesthetic "ySecondary"',
+  'A geom\'s and a coord\'s own settings go under `params`, a transform\'s under `options` — a sort is {"type":"transform","transformType":"sort","options":{"variableName":"revenue","direction":"desc"}}',
+  'A scale\'s options are the exception: they sit FLAT on the scale node, never nested — {"type":"scale","scaledAesthetic":"y","scaleType":"continuous","zero":true,"nice":true}',
   'When the data has one column per series, add a "reshape" transform, then map `color` to its keyName and `y` to its valueName',
   'Row values must be JSON — write dates as ISO strings like "2024-01-31", never as Date objects',
 ] as const;

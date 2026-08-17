@@ -1,42 +1,37 @@
-import type { AesMapping, Data, PositionType, SpecInput, YScaleType } from '@graphysdk/viz-engine';
-
-import type { GraphyChart } from '../grammar/chart.types';
-import { toSpecInput } from '../grammar/to-spec-input';
+import type { Data, SpecInput } from '@graphysdk/viz-engine';
 
 import type { GraphyChartComponentProps } from './props-schema';
 
 /**
- * Projects embedded chart props onto a viz-engine spec and its data.
+ * Pairs an embedded chart's authored spec with the dataset the engine reads it against.
  *
- * React-free, so the same props rasterise server-side as they do in a page.
+ * The spec is handed over whole — an authored spec is a `SpecInput`, so there is nothing to
+ * translate. What is left is the two things a spec does not carry: the columns, which are the rows'
+ * own keys, and the arrays the compiler indexes without checking.
  *
- * The required props are still read defensively: a host resolves prop expressions and hands the
- * result over without validating against the schema, so any of them can arrive absent.
+ * React-free, so the same props rasterise server-side as they do in a page. The props are read
+ * defensively: a host resolves prop expressions and hands the result over without validating against
+ * the schema, so any of them can arrive absent.
  */
 export function resolveEmbeddedChartInput(props: GraphyChartComponentProps): { input: SpecInput; data: Data } {
   const authored = props as Partial<GraphyChartComponentProps>;
+  // The one cast: an authored node is the engine's node with its names read off the catalog, which
+  // registration widens to `string`. Nothing about its shape changes on the way through.
+  const spec = (authored.spec ?? {}) as Partial<SpecInput>;
   const rows = readRows(authored.rows);
 
-  const chart: GraphyChart = {
-    title: authored.title,
-    subtitle: authored.subtitle,
-    caption: authored.caption,
-    mapping: (authored.mapping ?? {}) as AesMapping,
-    layers: (authored.layers ?? []).map((layer) => ({
-      geom: layer.geom,
-      params: layer.params,
-      mapping: layer.mapping as AesMapping | undefined,
-      stat: layer.stat,
-      position: layer.position as PositionType | undefined,
-      yScaleType: layer.yScaleType as YScaleType | undefined,
-    })),
-    scales: authored.scales ?? [],
-    transforms: authored.transforms,
-    coord: authored.coord,
-    legendPosition: authored.legendPosition,
+  return {
+    input: {
+      ...spec,
+      mapping: spec.mapping ?? {},
+      layers: spec.layers ?? [],
+      scales: spec.scales ?? [],
+      transforms: spec.transforms ?? [],
+      highlights: spec.highlights ?? [],
+      config: spec.config ?? {},
+    },
+    data: { columns: collectColumns(rows), rows },
   };
-
-  return { input: toSpecInput(chart), data: { columns: collectColumns(rows), rows } };
 }
 
 /**

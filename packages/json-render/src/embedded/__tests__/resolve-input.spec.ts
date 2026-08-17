@@ -14,6 +14,17 @@ describe('resolveEmbeddedChartInput', () => {
     expect(data.columns.map((column) => column.key)).toEqual(['month', 'region', 'revenue']);
   });
 
+  it('hands the authored spec to the engine unchanged', () => {
+    const props = createLineChartProps();
+
+    const { input } = resolveEmbeddedChartInput(props);
+
+    expect(input.mapping).toBe(props.spec.mapping);
+    expect(input.layers).toBe(props.spec.layers);
+    expect(input.scales).toBe(props.spec.scales);
+    expect(input.config).toBe(props.spec.config);
+  });
+
   it('leaves an omitted field absent, for the compiler to default', () => {
     const { input } = resolveEmbeddedChartInput(createLineChartProps());
 
@@ -23,16 +34,20 @@ describe('resolveEmbeddedChartInput', () => {
     expect(input.coords).toBeUndefined();
   });
 
+  it('fills the arrays the compiler indexes without checking', () => {
+    const { input } = resolveEmbeddedChartInput(createLineChartProps());
+
+    expect(input.transforms).toEqual([]);
+    expect(input.highlights).toEqual([]);
+  });
+
   it('survives a required prop a host never supplied', () => {
     // A host renderer resolves prop expressions and hands them over unvalidated, so even `rows` and
-    // `mapping` can arrive absent.
-    const sparse = {
-      rows: [{ month: 'Jan', revenue: 1 }],
-      mapping: { x: 'month', y: 'revenue' },
-    } as unknown as GraphyChartComponentProps;
+    // `spec` can arrive absent.
+    const sparse = { rows: [{ month: 'Jan', revenue: 1 }] } as unknown as GraphyChartComponentProps;
 
     expect(() => resolveEmbeddedChartInput(sparse)).not.toThrow();
-    expect(resolveEmbeddedChartInput(sparse).input.coords).toBeUndefined();
+    expect(resolveEmbeddedChartInput(sparse).input.layers).toEqual([]);
     expect(resolveEmbeddedChartInput({} as unknown as GraphyChartComponentProps).data.rows).toEqual([]);
   });
 
@@ -57,15 +72,19 @@ describe('resolveEmbeddedChartInput', () => {
   });
 
   it('compiles a donut, which is a bar under polar coords', () => {
+    const base = createLineChartProps();
     const props: GraphyChartComponentProps = {
-      ...createLineChartProps(),
-      layers: [{ geom: 'bar', position: 'stack' }],
-      scales: [
-        { aesthetic: 'x', scaleType: 'discrete' },
-        { aesthetic: 'y', scaleType: 'continuous' },
-        { aesthetic: 'color', scaleType: 'palette' },
-      ],
-      coord: { coordType: 'polar', params: { theta: 'y', innerRadius: 0.5 } },
+      ...base,
+      spec: {
+        ...base.spec,
+        layers: [{ type: 'layer', geom: 'bar', position: 'stack' }],
+        scales: [
+          { type: 'scale', scaledAesthetic: 'x', scaleType: 'discrete' },
+          { type: 'scale', scaledAesthetic: 'y', scaleType: 'continuous' },
+          { type: 'scale', scaledAesthetic: 'color', scaleType: 'palette' },
+        ],
+        coords: { type: 'coord', coordType: 'polar', params: { theta: 'y', innerRadius: 0.5 } },
+      },
     };
 
     const result = createCompiler().compile(resolveEmbeddedChartInput(props));
@@ -76,25 +95,32 @@ describe('resolveEmbeddedChartInput', () => {
   });
 
   it('carries the whole grammar through to the engine spec', () => {
+    const base = createLineChartProps();
     const props: GraphyChartComponentProps = {
-      ...createLineChartProps(),
-      layers: [
-        { geom: 'bar', params: { width: 0.8 }, stat: 'sum', position: 'stack' },
-        {
-          geom: 'line',
-          params: { interpolate: 'catmull-rom' },
-          mapping: { y: 'margin' },
-          yScaleType: 'secondary',
-        },
-      ],
-      scales: [
-        { aesthetic: 'x', scaleType: 'discrete' },
-        { aesthetic: 'y', scaleType: 'continuous', options: { zero: true } },
-        { aesthetic: 'ySecondary', scaleType: 'continuous' },
-        { aesthetic: 'color', scaleType: 'palette' },
-      ],
-      transforms: [{ transformType: 'sort', options: { variableName: 'revenue', direction: 'desc' } }],
-      legendPosition: 'bottom',
+      ...base,
+      spec: {
+        ...base.spec,
+        layers: [
+          { type: 'layer', geom: 'bar', params: { width: 0.8 }, stat: 'sum', position: 'stack' },
+          {
+            type: 'layer',
+            geom: 'line',
+            params: { interpolate: 'catmull-rom' },
+            mapping: { y: 'margin' },
+            yScaleType: 'secondary',
+          },
+        ],
+        scales: [
+          { type: 'scale', scaledAesthetic: 'x', scaleType: 'discrete' },
+          { type: 'scale', scaledAesthetic: 'y', scaleType: 'continuous', zero: true },
+          { type: 'scale', scaledAesthetic: 'ySecondary', scaleType: 'continuous' },
+          { type: 'scale', scaledAesthetic: 'color', scaleType: 'palette' },
+        ],
+        transforms: [
+          { type: 'transform', transformType: 'sort', options: { variableName: 'revenue', direction: 'desc' } },
+        ],
+        config: { legend: { position: 'bottom' } },
+      },
     };
 
     const { input } = resolveEmbeddedChartInput(props);
@@ -102,7 +128,6 @@ describe('resolveEmbeddedChartInput', () => {
     expect(input.layers[0]).toMatchObject({ params: { width: 0.8 }, stat: 'sum' });
     expect(input.layers[1]).toMatchObject({ mapping: { y: 'margin' }, yScaleType: 'secondary' });
     expect(input.transforms[0]).toMatchObject({ transformType: 'sort', options: { direction: 'desc' } });
-    // Non-`inferred` scale options flatten onto the engine's scale node rather than staying nested.
     expect(input.scales[1]).toMatchObject({ scaledAesthetic: 'y', zero: true });
     expect(input.config.legend).toEqual({ position: 'bottom' });
   });

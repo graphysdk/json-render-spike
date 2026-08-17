@@ -14,7 +14,6 @@ import { type GraphyChartComponentProps, graphyChartPropsSchema } from './props-
 
 /** Leaves every optional field out, because that is how a model should write one. */
 const EXAMPLE_PROPS: GraphyChartComponentProps = {
-  title: 'Revenue by month',
   height: 320,
   rows: [
     { month: 'Jan', region: 'EMEA', revenue: 120 },
@@ -22,13 +21,16 @@ const EXAMPLE_PROPS: GraphyChartComponentProps = {
     { month: 'Feb', region: 'EMEA', revenue: 145 },
     { month: 'Feb', region: 'AMER', revenue: 110 },
   ],
-  mapping: { x: 'month', y: 'revenue', color: 'region' },
-  layers: [{ geom: 'line', params: { interpolate: 'linear' } }],
-  scales: [
-    { aesthetic: 'x', scaleType: 'inferred' },
-    { aesthetic: 'y', scaleType: 'continuous', options: { zero: true, nice: true } },
-    { aesthetic: 'color', scaleType: 'palette' },
-  ],
+  spec: {
+    mapping: { x: 'month', y: 'revenue', color: 'region' },
+    layers: [{ type: 'layer', geom: 'line', params: { interpolate: 'linear' } }],
+    scales: [
+      { type: 'scale', scaledAesthetic: 'x', scaleType: 'inferred' },
+      { type: 'scale', scaledAesthetic: 'y', scaleType: 'continuous', zero: true, nice: true },
+      { type: 'scale', scaledAesthetic: 'color', scaleType: 'palette' },
+    ],
+    config: { content: { title: 'Revenue by month' } },
+  },
 };
 
 /**
@@ -74,7 +76,7 @@ function buildChartDescription(): string {
   });
 
   return [
-    'A chart built from a grammar of graphics, with its data inline.',
+    'A chart built from a grammar of graphics: `rows` holds its data inline, `spec` says what to draw from them.',
     ...sections,
     `CHANNELS: ${AESTHETIC_CHANNELS.join('. ')}.`,
     `RULES: ${CHART_GRAMMAR_RULES.join('. ')}.`,

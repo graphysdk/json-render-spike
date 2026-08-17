@@ -34,42 +34,48 @@ The entry carries its own description — every geom, scale, coord and transform
 
 There is no `type: 'bar'` prop. A chart is an aesthetic mapping, a stack of geom layers, and the scales those layers are positioned by, read through a coordinate system:
 
-| To draw         | Author                                         |
-| --------------- | ---------------------------------------------- |
-| Grouped bars    | `geom: 'bar'`, `position: 'dodge'`             |
-| Stacked bars    | `geom: 'bar'`, `position: 'stack'`             |
-| 100% stacked    | `geom: 'bar'`, `position: 'fill'`              |
-| Horizontal bars | `geom: 'bar'`, `coord: { coordType: 'flip' }`  |
-| Pie             | `geom: 'bar'`, `coord: { coordType: 'polar' }` |
-| Donut           | as pie, with `params: { innerRadius: 0.5 }`    |
-| Combo           | a `bar` layer and a `line` layer on one chart  |
+| To draw         | Author                                          |
+| --------------- | ----------------------------------------------- |
+| Grouped bars    | `geom: 'bar'`, `position: 'dodge'`              |
+| Stacked bars    | `geom: 'bar'`, `position: 'stack'`              |
+| 100% stacked    | `geom: 'bar'`, `position: 'fill'`               |
+| Horizontal bars | `geom: 'bar'`, `coords: { coordType: 'flip' }`  |
+| Pie             | `geom: 'bar'`, `coords: { coordType: 'polar' }` |
+| Donut           | as pie, with `params: { innerRadius: 0.5 }`     |
+| Combo           | a `bar` layer and a `line` layer on one chart   |
 
 Five geoms and three coordinate systems reach far more chart shapes than an enum of the same size, and the entry stays small enough to sit in a prompt beside every other component.
 
-The whole grammar is reachable from the props — geom `params`, layer-local `mapping`, `yScaleType` for a second y axis, scale `options` and `transforms` — so a chart that grows past what a page usually asks for doesn't have to leave the page to grow:
+## The props are a viz-engine spec
+
+A chart takes two props: `rows`, the data inline, and `spec` — a viz-engine [`SpecInput`](../viz-engine), field for field:
 
 ```json
 {
   "type": "GraphyChart",
   "props": {
-    "title": "Revenue by month",
     "rows": [{ "month": "Jan", "region": "EMEA", "revenue": 120 }],
-    "mapping": { "x": "month", "y": "revenue", "color": "region" },
-    "layers": [{ "geom": "line", "params": { "interpolate": "linear" } }],
-    "scales": [
-      { "aesthetic": "x", "scaleType": "inferred" },
-      { "aesthetic": "y", "scaleType": "continuous", "options": { "zero": true } },
-      { "aesthetic": "color", "scaleType": "palette" }
-    ]
+    "spec": {
+      "mapping": { "x": "month", "y": "revenue", "color": "region" },
+      "layers": [{ "type": "layer", "geom": "line", "params": { "interpolate": "linear" } }],
+      "scales": [
+        { "type": "scale", "scaledAesthetic": "x", "scaleType": "inferred" },
+        { "type": "scale", "scaledAesthetic": "y", "scaleType": "continuous", "zero": true },
+        { "type": "scale", "scaledAesthetic": "color", "scaleType": "palette" }
+      ],
+      "config": { "content": { "title": "Revenue by month" } }
+    }
   }
 }
 ```
 
-Data goes in inline as `rows`. A chart sizes to its cell, which a page layout rarely constrains vertically — hence the pixel `height` prop, defaulting to 320.
+Nothing is translated between the two. The whole grammar is therefore reachable — geom `params`, layer-local `mapping`, `yScaleType` for a second y axis, scale options, `transforms`, `coords` — so a chart that grows past what a page usually asks for doesn't have to leave the page to grow, and a spec that outgrows the page moves to a `<GraphProvider>` unchanged.
+
+A chart sizes to its cell, which a page layout rarely constrains vertically — hence the pixel `height` prop, defaulting to 320.
 
 ## Rendering without React
 
-`resolveEmbeddedChartInput` projects the props onto a viz-engine `SpecInput` and its data, so the same props rasterise server-side as they do in a page:
+`resolveEmbeddedChartInput` pairs the authored spec with the dataset the engine reads it against, so the same props rasterise server-side as they do in a page:
 
 ```ts
 import { resolveEmbeddedChartInput } from '@graphysdk/json-render/server';
@@ -78,14 +84,16 @@ const { input, data } = resolveEmbeddedChartInput(props);
 const result = createCompiler().compile({ input, data });
 ```
 
+The columns are the rows' own keys, and the arrays the compiler indexes without checking are filled; the spec itself is handed over whole.
+
 A chart's grammar is the compiler's to judge: an unknown column, geom, transform or coord comes back as `{ ok: false, errors }`, each error naming the layer and the registered alternatives.
 
 ## Entry points
 
-| Entry      | Contents                                                                     |
-| ---------- | ---------------------------------------------------------------------------- |
-| `.`        | The catalog entry, the props schema, the projection, and the React component |
-| `./server` | The same minus React — safe in API routes and build scripts                  |
+| Entry      | Contents                                                     |
+| ---------- | ------------------------------------------------------------ |
+| `.`        | The catalog entry, the props schema, and the React component |
+| `./server` | The same minus React — safe in API routes and build scripts  |
 
 ## Custom geoms
 
@@ -97,6 +105,6 @@ Reaching a custom geom today means assembling your own definition from the expor
 
 ```
 src/
-  grammar/    what a chart is — the catalog, the composition rules, and the projection onto viz-engine
+  grammar/    what a chart is — the catalog and the composition rules
   embedded/   the json-render integration — props schema, catalog entry, React component
 ```

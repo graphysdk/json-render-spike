@@ -1,6 +1,7 @@
 import { type FormEvent, type ReactElement, useEffect, useState } from 'react';
 
 import { fetchStatus, fetchSystemPrompt, type StudioStatus } from './api';
+import { CodePanel } from './CodePanel';
 import { EXAMPLE_PROMPTS, findPageIssues, isPageEmpty } from './page-spec';
 import { PagePreview } from './PagePreview';
 import { PreviewBoundary } from './PreviewBoundary';
@@ -14,6 +15,14 @@ const INSPECTOR_PANELS: Array<{ id: InspectorPanel; label: string }> = [
   { id: 'prompt', label: 'System prompt' },
 ];
 
+/** What the main surface is showing: the page running, or the page as source. */
+type Surface = 'preview' | 'code';
+
+const SURFACES: Array<{ id: Surface; label: string }> = [
+  { id: 'preview', label: 'Preview' },
+  { id: 'code', label: 'Code' },
+];
+
 const BLURB =
   'shadcn/ui components with state and actions. GraphyChart is one of the 37, and carries the whole grammar of graphics.';
 
@@ -21,6 +30,7 @@ export const App = (): ReactElement => {
   const [status, setStatus] = useState<StudioStatus | null>(null);
   const [prompt, setPrompt] = useState('');
   const [panel, setPanel] = useState<InspectorPanel>('spec');
+  const [surface, setSurface] = useState<Surface>('preview');
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
 
   const generation = useGeneration();
@@ -140,13 +150,31 @@ export const App = (): ReactElement => {
           </div>
         </aside>
 
-        <main className="studio-preview">
-          {hasSpec && generation.spec !== null ? (
-            <PreviewBoundary resetKey={generation.status}>
-              <PagePreview spec={generation.spec} isStreaming={streaming} />
-            </PreviewBoundary>
-          ) : (
+        <main className="studio-main">
+          <div className="studio-surface-tabs">
+            {SURFACES.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className="studio-surface-tab"
+                aria-pressed={surface === option.id}
+                onClick={() => setSurface(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {!hasSpec || generation.spec === null ? (
             <p className="studio-empty">{streaming ? 'Generating…' : 'Nothing generated yet.'}</p>
+          ) : surface === 'code' ? (
+            <CodePanel spec={generation.spec} />
+          ) : (
+            <div className="studio-preview">
+              <PreviewBoundary resetKey={generation.status}>
+                <PagePreview spec={generation.spec} isStreaming={streaming} />
+              </PreviewBoundary>
+            </div>
           )}
         </main>
       </div>

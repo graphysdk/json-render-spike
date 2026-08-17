@@ -27,9 +27,21 @@ components: { ...shadcnComponentDefinitions, GraphyChart: graphyChartComponentDe
 components: { ...shadcnComponents, GraphyChart: GraphyChartComponent }
 ```
 
-The chart is still a grammar of graphics — `mapping` + `layers` + `scales` + `transforms` + `coord`, no chart-type field — just with its data inline as `rows`. There is no reduced "chart in a page" dialect: geom `params`, layer-local mappings, scale `options` and a secondary y axis are all reachable from a component prop, so a chart never has to leave the page to grow.
+A chart takes two props: `rows`, its data inline, and `spec` — a viz-engine `SpecInput`, field for field. There is no reduced "chart in a page" dialect and nothing translated in between, so geom `params`, layer-local mappings, scale options, transforms and a secondary y axis are all reachable, and a chart never has to leave the page to grow.
+
+## Preview and code
+
+The main surface has two tabs. **Preview** runs the spec through `<Renderer>`. **Code** resolves it instead, into a standalone React page with no json-render left in it — `$state` paths become member access, `visible` becomes a guard, `repeat` becomes a `.map()`, the built-in state actions become the updates they perform, and the state model becomes a `useState` (or, on a page that only reads, a plain `const`).
+
+json-render's [code export](https://json-render.dev/docs/code-export) is deliberately half a feature: `@json-render/codegen` ships traversal and serialisation, and leaves the generator to the project, because what the emitted components look like is the project's business. This is that half. It also has to resolve expressions, which the shipped `serializeProps` does not — that one prints `{ $state: "/data/sales" }` straight back out, since its target components take the path and resolve it themselves. Code that has left the runtime behind has no resolver, so a path has to become the access it stands for.
+
+The emitted page assumes shadcn's components under `@/components/ui`, taking the catalog's prop names, and turns an `on: { press }` binding into `onPress`. `GraphyChart` is the one element that does not become the component named on it: outside a registry that component is a dependency the page has no reason to carry, and its props already are a viz-engine spec — so a chart lands as the `<GraphProvider>` + `<GraphRenderer>` a hand-written page would use, its spec hoisted to a `const` above the markup wherever nothing in it changes per render.
+
+A spec reaches further than plain React does. Form validation, state watchers, confirmation dialogs, `onSuccess`/`onError` and custom `$computed` functions have no standalone equivalent, so they are listed in a comment at the head of the file and counted beside the tab rather than dropped — a page that quietly does less than its spec is the one failure this panel cannot help you see.
 
 ## What the panels are for
+
+The sidebar keeps the four that answer "why does it look like that":
 
 - **Spec** — the JSON as it stands. This is the artifact; everything else is scaffolding.
 - **Stream** — the raw JSONL. Where you look when the spec has a hole in it.
