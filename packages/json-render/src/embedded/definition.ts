@@ -9,12 +9,14 @@ import {
 } from '../grammar/catalog';
 import { formatCatalogParams } from '../grammar/format-params';
 import { AESTHETIC_CHANNELS, CHART_GRAMMAR_RULES } from '../grammar/rules';
+import { CHART_STYLE_NAMES, chartStyles } from '../styles/chart-styles';
 
 import { type GraphyChartComponentProps, graphyChartPropsSchema } from './props-schema';
 
-/** Leaves every optional field out, because that is how a model should write one. */
+/** Leaves every optional field out — except `style`, which a chart normally carries. */
 const EXAMPLE_PROPS: GraphyChartComponentProps = {
   height: 320,
+  style: 'braun',
   rows: [
     { month: 'Jan', region: 'EMEA', revenue: 120 },
     { month: 'Jan', region: 'AMER', revenue: 90 },
@@ -75,10 +77,14 @@ function buildChartDescription(): string {
     return `${heading}: ${entries}`;
   });
 
+  const styleEntries = CHART_STYLE_NAMES.map((name) => `${name} (${chartStyles[name].description})`).join('; ');
+
   return [
     'A chart built from a grammar of graphics: `rows` holds its data inline, `spec` says what to draw from them.',
     ...sections,
     `CHANNELS: ${AESTHETIC_CHANNELS.join('. ')}.`,
     `RULES: ${CHART_GRAMMAR_RULES.join('. ')}.`,
+    'A chart draws its own header from `config.content` — a chart asked for on its own goes straight on the page, not inside a card. When a chart does sit inside a card or panel, put the title and subtitle on exactly one of the two, never both.',
+    `STYLES (the top-level \`style\` prop): ${styleEntries}. Pick the style that fits the request and set it on every chart, the same one across a page. Leave it unset only when the user asks for custom styling of their own.`,
   ].join(' ');
 }

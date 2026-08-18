@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { standardGeomDefinitions, standardTransformDefinitions } from '../../grammar/catalog';
+import { CHART_STYLE_NAMES, chartStyles } from '../../styles/chart-styles';
 import { graphyChartComponentDefinition } from '../definition';
 import { graphyChartPropsSchema } from '../props-schema';
 
@@ -88,5 +89,12 @@ describe('graphyChartComponentDefinition', () => {
 
   it('has no slots, because a chart takes no children', () => {
     expect(graphyChartComponentDefinition.slots).toEqual([]);
+  });
+
+  it('teaches every baked-in style by drawing on the registry rather than restating it', () => {
+    for (const name of CHART_STYLE_NAMES) {
+      expect(graphyChartComponentDefinition.description).toContain(name);
+      expect(graphyChartComponentDefinition.description).toContain(chartStyles[name].description);
+    }
   });
 });

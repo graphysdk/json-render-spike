@@ -1,0 +1,74 @@
+import { describe, expect, it } from 'vitest';
+
+import type { SpecInput } from '@graphysdk/viz-engine';
+
+import { applyChartStyle, chartStyles, readChartStyleName } from '../chart-styles';
+
+function createSpecInput(overrides: Partial<SpecInput> = {}): SpecInput {
+  return {
+    mapping: { x: 'month', y: 'revenue', color: 'region' },
+    layers: [{ type: 'layer', geom: 'bar' }],
+    scales: [
+      { type: 'scale', scaledAesthetic: 'x', scaleType: 'inferred' },
+      { type: 'scale', scaledAesthetic: 'y', scaleType: 'continuous' },
+      { type: 'scale', scaledAesthetic: 'color', scaleType: 'palette', palette: { type: 'pastel' } },
+    ],
+    transforms: [],
+    highlights: [],
+    config: {},
+    ...overrides,
+  };
+}
+
+describe('readChartStyleName', () => {
+  it('accepts only a known style name, since a host hands props over unvalidated', () => {
+    expect(readChartStyleName('braun')).toBe('braun');
+    expect(readChartStyleName('bauhaus')).toBeUndefined();
+    expect(readChartStyleName(undefined)).toBeUndefined();
+    expect(readChartStyleName(7)).toBeUndefined();
+  });
+});
+
+describe('applyChartStyle', () => {
+  it('points an authored palette scale at the style, replacing the palette the spec chose', () => {
+    const { input } = applyChartStyle(createSpecInput(), 'braun');
+
+    const paletteScale = input.scales.find((scale) => scale.scaleType === 'palette');
+    expect(paletteScale).toMatchObject({ palette: { type: 'custom', id: 'braun' } });
+  });
+
+  it('plants a palette scale when the spec has none, so unmapped color still takes the style', () => {
+    const bare = createSpecInput({
+      scales: [{ type: 'scale', scaledAesthetic: 'x', scaleType: 'inferred' }],
+    });
+
+    const { input } = applyChartStyle(bare, 'braun');
+
+    const paletteScale = input.scales.find((scale) => scale.scaleType === 'palette');
+    expect(paletteScale).toMatchObject({ scaledAesthetic: 'color', palette: { type: 'custom', id: 'braun' } });
+  });
+
+  it('clears per-group overrides the spec authored, so the style paints every group', () => {
+    const overridden = createSpecInput({
+      scales: [{ type: 'scale', scaledAesthetic: 'color', scaleType: 'palette', overrides: { 1: { hex: '#FF0000' } } }],
+    });
+
+    const { input } = applyChartStyle(overridden, 'braun');
+
+    expect(input.scales[0]).toMatchObject({ overrides: {} });
+  });
+
+  it('registers the style series colors under the style name a palette scale references', () => {
+    const { customPalettes } = applyChartStyle(createSpecInput(), 'braun');
+
+    const colors = customPalettes['braun'];
+    expect(colors?.map((color) => color.hex)).toEqual([...chartStyles.braun.seriesColors]);
+    expect(colors?.map((color) => color.id)).toEqual(colors?.map((color, index) => `series-${index + 1}`));
+  });
+
+  it('hands back the style theme beside the restyled spec', () => {
+    const { themeOverrides } = applyChartStyle(createSpecInput(), 'braun');
+
+    expect(themeOverrides).toBe(chartStyles.braun.themeOverrides);
+  });
+});

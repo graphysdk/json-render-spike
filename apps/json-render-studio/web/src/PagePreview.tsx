@@ -1,26 +1,17 @@
 import { defineRegistry, JSONUIProvider, Renderer } from '@json-render/react';
 import { shadcnComponents } from '@json-render/shadcn';
-import type { ReactElement } from 'react';
+import { type ReactElement, useMemo } from 'react';
 
-import { GraphyChartComponent } from '@graphysdk/json-render';
+import {
+  type ChartStyleName,
+  chartStyles,
+  GraphyChartComponent,
+  type GraphyChartComponentRenderProps,
+} from '@graphysdk/json-render';
 
 import { componentCatalog } from '../../shared/component-catalog';
 
 import { asElementTree } from './page-spec';
-
-/**
- * The paint half of the catalog.
- *
- * One entry per catalog definition — shadcn's own implementations, plus ours for `GraphyChart`.
- * `GraphyChartComponent` takes the same `{ props }` a registry hands any component, so the chart
- * needs no adapter here.
- */
-const { registry } = defineRegistry(componentCatalog, {
-  components: {
-    ...shadcnComponents,
-    GraphyChart: GraphyChartComponent,
-  },
-});
 
 /**
  * A generated page owns state: an Input writes to it, a Table reads its rows back out of it.
@@ -36,19 +27,42 @@ const { registry } = defineRegistry(componentCatalog, {
 export const PagePreview = ({
   spec,
   isStreaming,
+  chartStyle,
 }: {
   spec: Record<string, unknown>;
   isStreaming: boolean;
+  chartStyle?: ChartStyleName;
 }): ReactElement => {
   const tree = asElementTree(spec);
 
+  // The paint half of the catalog: shadcn's own implementations, plus ours for `GraphyChart`. The
+  // chosen chart style is a render-time default, not part of the generated spec, so it rides in on
+  // a wrapper closed over the selection — a `style` the model authored still wins inside the chart.
+  const { registry } = useMemo(
+    () =>
+      defineRegistry(componentCatalog, {
+        components: {
+          ...shadcnComponents,
+          GraphyChart: (renderProps: GraphyChartComponentRenderProps) => (
+            <GraphyChartComponent {...renderProps} chartStyle={chartStyle} />
+          ),
+        },
+      }),
+    [chartStyle]
+  );
+
+  const fontsUrl = chartStyle === undefined ? undefined : chartStyles[chartStyle].fontsUrl;
+
   return (
-    <JSONUIProvider
-      key={`${tree.root}:${isStreaming ? 'streaming' : 'settled'}`}
-      registry={registry}
-      initialState={tree.state ?? {}}
-    >
-      <Renderer spec={tree} registry={registry} loading={isStreaming} />
-    </JSONUIProvider>
+    <>
+      {fontsUrl !== undefined && <link rel="stylesheet" precedence="default" href={fontsUrl} />}
+      <JSONUIProvider
+        key={`${tree.root}:${isStreaming ? 'streaming' : 'settled'}`}
+        registry={registry}
+        initialState={tree.state ?? {}}
+      >
+        <Renderer spec={tree} registry={registry} loading={isStreaming} />
+      </JSONUIProvider>
+    </>
   );
 };

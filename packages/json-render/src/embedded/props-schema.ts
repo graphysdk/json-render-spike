@@ -10,6 +10,7 @@ import {
   standardStatDefinitions,
   standardTransformDefinitions,
 } from '../grammar/catalog';
+import { CHART_STYLE_NAMES } from '../styles/chart-styles';
 
 /**
  * The props of a single embedded Graphy chart: the data, the spec that reads it, and the box to
@@ -93,6 +94,8 @@ const coordSchema = z.object({
 export const graphyChartPropsSchema = z.object({
   /** Chart height in pixels. Defaults to 320. */
   height: z.number().optional(),
+  /** A baked-in visual style by name. Left unset, the host's default look applies. */
+  style: z.enum(CHART_STYLE_NAMES).optional(),
   /** The chart's own data, inline — one object per observation. Dates go in as ISO strings. */
   rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.null()]))),
   /** A viz-engine spec: what to draw from those rows, and how to position it. */

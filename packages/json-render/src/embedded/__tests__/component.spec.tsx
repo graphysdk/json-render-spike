@@ -19,6 +19,11 @@ describe('GraphyChartComponent', () => {
     expect((container.firstElementChild as HTMLElement).style.height).toBe('320px');
   });
 
+  it('mounts a chart under a baked-in style, whether the host or the props chose it', () => {
+    expect(() => render(<GraphyChartComponent props={createLineChartProps()} chartStyle="braun" />)).not.toThrow();
+    expect(() => render(<GraphyChartComponent props={{ ...createLineChartProps(), style: 'braun' }} />)).not.toThrow();
+  });
+
   it('mounts a chart whose props a host handed over unvalidated', () => {
     // A host resolves prop expressions without parsing them against the schema, so the component
     // has to survive props the schema would have rejected rather than blank the whole page.

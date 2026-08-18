@@ -18,3 +18,12 @@ export {
 } from './grammar/catalog';
 export { formatCatalogParams } from './grammar/format-params';
 export { AESTHETIC_CHANNELS, CHART_GRAMMAR_RULES } from './grammar/rules';
+export { type ChartStyle } from './styles/chart-style.types';
+export {
+  applyChartStyle,
+  CHART_STYLE_NAMES,
+  type ChartStyleName,
+  chartStyles,
+  readChartStyleName,
+  type StyledChart,
+} from './styles/chart-styles';

@@ -1,5 +1,7 @@
 import { type FormEvent, type ReactElement, useEffect, useState } from 'react';
 
+import { CHART_STYLE_NAMES, type ChartStyleName, readChartStyleName } from '@graphysdk/json-render';
+
 import { fetchStatus, fetchSystemPrompt, type StudioStatus } from './api';
 import { CodePanel } from './CodePanel';
 import { EXAMPLE_PROMPTS, findPageIssues, isPageEmpty } from './page-spec';
@@ -32,6 +34,7 @@ export const App = (): ReactElement => {
   const [panel, setPanel] = useState<InspectorPanel>('spec');
   const [surface, setSurface] = useState<Surface>('preview');
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
+  const [chartStyle, setChartStyle] = useState<ChartStyleName | undefined>(undefined);
 
   const generation = useGeneration();
   const streaming = generation.status === 'streaming';
@@ -96,6 +99,22 @@ export const App = (): ReactElement => {
           <p className={generation.error === null ? 'studio-status' : 'studio-status studio-status--error'}>
             {generation.error ?? describeProgress(generation)}
           </p>
+
+          <label className="studio-style-picker">
+            <span className="studio-section-title">Chart style</span>
+            <select
+              className="studio-style-select"
+              value={chartStyle ?? ''}
+              onChange={(event) => setChartStyle(readChartStyleName(event.target.value))}
+            >
+              <option value="">Auto</option>
+              {CHART_STYLE_NAMES.map((name) => (
+                <option key={name} value={name}>
+                  {formatStyleLabel(name)}
+                </option>
+              ))}
+            </select>
+          </label>
 
           {!hasSpec && !streaming && (
             <>
@@ -166,7 +185,7 @@ export const App = (): ReactElement => {
           ) : (
             <div className="studio-preview">
               <PreviewBoundary resetKey={generation.status}>
-                <PagePreview spec={generation.spec} isStreaming={streaming} />
+                <PagePreview spec={generation.spec} isStreaming={streaming} chartStyle={chartStyle} />
               </PreviewBoundary>
             </div>
           )}
@@ -175,6 +194,10 @@ export const App = (): ReactElement => {
     </div>
   );
 };
+
+function formatStyleLabel(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
 
 function describeStatus(status: StudioStatus): string {
   // Which credentials are paying for a generation is worth seeing before you fire one off.
