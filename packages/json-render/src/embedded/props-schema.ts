@@ -35,8 +35,8 @@ const catalogParams = z.record(z.string(), z.unknown());
 /** A channel bound to a data column by name, or to a constant applied to every observation. */
 const aestheticValue = z.union([z.string(), z.object({ value: z.union([z.string(), z.number(), z.null()]) })]);
 const mappingSchema = z.record(z.string(), aestheticValue);
-
 const axisGuideSchema = z.object({ isVisible: z.boolean() });
+
 /** One axis's authored settings; anything left unset keeps the engine default. */
 const axisSchema = z.object({
   /** Axis title. Name units the tick labels alone don't carry. */
@@ -83,12 +83,53 @@ const configSchema = z.object({
     .optional(),
 });
 
+/** Paint knobs a model may set. CSS color literals only — no token refs, no light/dark pairs. */
+const styleDeclarationsSchema = z.object({
+  color: z.string().optional(),
+  alpha: z.number().optional(),
+  borderColor: z.string().optional(),
+  borderWidth: z.number().optional(),
+  borderRadius: z.enum(['none', 'xs', 'sm', 'md', 'lg', 'xl', 'full']).optional(),
+  strokeWidth: z.number().optional(),
+  lineType: z.enum(['solid', 'dashed', 'dotted']).optional(),
+  fillAlpha: z.number().optional(),
+  size: z.number().optional(),
+  background: z.string().optional(),
+  textColor: z.string().optional(),
+  fontSize: z.number().optional(),
+  fontWeight: z.number().optional(),
+});
+
 /**
  * Names come from the catalog itself, so registering a geom widens what a chart component may be
  * authored with. `z.enum` wants a non-empty tuple; the catalogs are never empty.
  */
 const namesOf = (definitions: Record<string, unknown>): [string, ...string[]] =>
   Object.keys(definitions) as [string, ...string[]];
+
+/** One stylesheet entry: what it styles, and the declarations. No conditions on this surface yet. */
+const styleRuleSchema = z.union([
+  z.object({
+    select: z.object({
+      target: z.literal('geom'),
+      kind: z.enum(namesOf(standardGeomDefinitions)).optional(),
+    }),
+    declarations: styleDeclarationsSchema,
+  }),
+  z.object({
+    select: z.object({ target: z.enum(['dataLabel', 'axisLabel', 'tickLabel', 'graph']) }),
+    declarations: styleDeclarationsSchema,
+  }),
+]);
+
+/**
+ * The authored stylesheet: `defaults` fill what no mapped aesthetic decided, `overrides` replace
+ * even scale-assigned paint. The shape is the engine's own — nothing is translated on the way in.
+ */
+const stylesSchema = z.object({
+  defaults: z.array(styleRuleSchema).optional(),
+  overrides: z.array(styleRuleSchema).optional(),
+});
 
 const layerSchema = z.object({
   type: z.literal('layer'),
@@ -143,5 +184,7 @@ export const graphyChartPropsSchema = z.object({
     transforms: z.array(transformSchema).optional(),
     coords: coordSchema.optional(),
     config: configSchema.optional(),
+    /** Repaints marks and chrome. Use when the user asks for specific colors or label styling. */
+    styles: stylesSchema.optional(),
   }),
 });

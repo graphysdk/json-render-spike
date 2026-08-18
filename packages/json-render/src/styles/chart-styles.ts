@@ -1,6 +1,6 @@
 import type { ThemeOverrides } from '@graphysdk/react';
 import type { CustomPalettesInput, SpecInput } from '@graphysdk/viz-engine';
-import { scale } from '@graphysdk/viz-engine';
+import { pipe, scale } from '@graphysdk/viz-engine';
 
 import { braunChartStyle } from './braun';
 import type { ChartStyle } from './chart-style.types';
@@ -49,12 +49,15 @@ export function readChartStyleName(value: unknown): ChartStyleName | undefined {
 /**
  * Restyles an authored spec with a baked-in style: folds the style's config and stylesheets onto
  * the spec, and points every palette scale at the style's own series colors. The style wins over
- * whatever palette the spec chose, so one name gives one look.
+ * whatever palette the spec chose, so one name gives one look — but an authored stylesheet is the
+ * user's explicit ask, so it is lifted off first and folded back on top of the style's sheets.
  */
 export function applyChartStyle(input: SpecInput, name: ChartStyleName): StyledChart {
   const chartStyle = chartStyles[name];
+  const { styles: authoredStyles, ...bare } = input;
+  const styled = chartStyle.apply(forceSeriesColors(bare, name));
   return {
-    input: chartStyle.apply(forceSeriesColors(input, name)),
+    input: authoredStyles === undefined ? styled : pipe(styled, { ...authoredStyles, type: 'styles' }),
     themeOverrides: chartStyle.themeOverrides,
     customPalettes: {
       [name]: chartStyle.seriesColors.map((hex, index) => ({ id: `series-${index + 1}`, hex })),

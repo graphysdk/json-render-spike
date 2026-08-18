@@ -29,6 +29,9 @@ export function resolveEmbeddedChartInput(props: GraphyChartComponentProps): { i
       transforms: spec.transforms ?? [],
       highlights: spec.highlights ?? [],
       config: spec.config ?? {},
+      // An authored stylesheet arrives without the pipe tag the builders stamp; add it so the
+      // sheet composes with a baked style the same as a built one.
+      ...(spec.styles === undefined ? {} : { styles: { ...spec.styles, type: 'styles' as const } }),
     },
     data: { columns: collectColumns(rows), rows },
   };

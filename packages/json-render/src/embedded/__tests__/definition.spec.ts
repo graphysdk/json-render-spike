@@ -66,6 +66,37 @@ describe('graphyChartPropsSchema', () => {
     expect(result.data?.spec.config?.headline?.show).toBe('total');
   });
 
+  it('accepts an authored stylesheet, which is how a model answers "make the bars red"', () => {
+    const props = createLineChartProps();
+    const styled = {
+      ...props,
+      spec: {
+        ...props.spec,
+        styles: {
+          overrides: [{ select: { target: 'geom', kind: 'bar' }, declarations: { color: '#D72B1C' } }],
+          defaults: [{ select: { target: 'dataLabel' }, declarations: { fontSize: 14, textColor: '#39B54A' } }],
+        },
+      },
+    };
+
+    const result = graphyChartPropsSchema.safeParse(styled);
+
+    expect(result.error?.issues ?? [], JSON.stringify(result.error?.issues)).toEqual([]);
+  });
+
+  it('rejects a stylesheet entry aimed at a target the surface does not carry', () => {
+    const props = createLineChartProps();
+    const offTarget = {
+      ...props,
+      spec: {
+        ...props.spec,
+        styles: { defaults: [{ select: { target: 'panelBorder' }, declarations: { strokeWidth: 4 } }] },
+      },
+    };
+
+    expect(graphyChartPropsSchema.safeParse(offTarget).success).toBe(false);
+  });
+
   it('keeps a scale option that sits flat on the node, which is where the engine reads it', () => {
     const props = createLineChartProps();
     const scaled = {
