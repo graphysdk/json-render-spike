@@ -23,7 +23,7 @@ export interface GraphyChartComponentRenderProps {
   loading?: boolean;
 }
 
-const DEFAULT_HEIGHT = 320;
+const DEFAULT_HEIGHT = 360;
 
 const PLACEHOLDER_BARS = [
   { x: 2, height: 14, delay: '0s' },

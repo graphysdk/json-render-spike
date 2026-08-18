@@ -71,7 +71,7 @@ A chart takes two props: `rows`, the data inline, and `spec` — a viz-engine [`
 
 Nothing is translated between the two. The whole grammar is therefore reachable — geom `params`, layer-local `mapping`, `yScaleType` for a second y axis, scale options, `transforms`, `coords` — so a chart that grows past what a page usually asks for doesn't have to leave the page to grow, and a spec that outgrows the page moves to a `<GraphProvider>` unchanged.
 
-A chart sizes to its cell, which a page layout rarely constrains vertically — hence the pixel `height` prop, defaulting to 320.
+A chart sizes to its cell, which a page layout rarely constrains vertically — hence the pixel `height` prop, defaulting to 360.
 
 ## Baked-in styles
 

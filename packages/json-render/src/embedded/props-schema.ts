@@ -212,7 +212,7 @@ const coordSchema = z.object({
 });
 
 export const graphyChartPropsSchema = z.object({
-  /** Chart height in pixels. Defaults to 320. */
+  /** Chart height in pixels. Defaults to 360. */
   height: z.number().optional(),
   /** A baked-in visual style by name. Left unset, the host's default look applies. */
   style: z.enum(CHART_STYLE_NAMES).optional(),
