@@ -9,6 +9,10 @@ cp .env.example .env   # ANTHROPIC_API_KEY, or inherit apps/agents-api/.env
 pnpm dev               # API on :4320, web on :5190
 ```
 
+With no `ANTHROPIC_API_KEY` set, generation runs through your Claude subscription instead: the
+server drives your local Claude Code with the same system prompt, no tools and a single turn, and
+streams the text back unchanged. The header says which of the two a generation will use.
+
 ## What it generates
 
 A React page: `@json-render/react`'s element-tree schema, filled with shadcn's 36 components plus `GraphyChart`, painted by `<JSONUIProvider>` + `<Renderer>`.

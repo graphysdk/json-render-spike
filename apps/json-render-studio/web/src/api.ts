@@ -1,6 +1,7 @@
 export interface StudioStatus {
   model: string;
-  hasApiKey: boolean;
+  /** `claude-subscription` when no API key was set and generation runs through Claude Code. */
+  credentials: 'api-key' | 'claude-subscription';
 }
 
 export async function fetchStatus(): Promise<StudioStatus> {

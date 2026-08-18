@@ -5,10 +5,16 @@ import path from 'node:path';
 const DEFAULT_MODEL = 'claude-sonnet-5';
 const DEFAULT_PORT = 4320;
 
+/**
+ * Where a generation gets its credentials. Without an API key the request runs through the local
+ * Claude Code install, which signs it with the developer's Claude subscription.
+ */
+export type StudioCredentials = 'api-key' | 'claude-subscription';
+
 export interface StudioConfig {
   readonly port: number;
   readonly model: string;
-  readonly hasApiKey: boolean;
+  readonly credentials: StudioCredentials;
 }
 
 export function findRepoRoot(startDir: string): string {
@@ -30,6 +36,6 @@ export function loadStudioConfig(): StudioConfig {
   return {
     port: Number(process.env.JSON_RENDER_STUDIO_PORT ?? DEFAULT_PORT),
     model: process.env.JSON_RENDER_STUDIO_MODEL ?? DEFAULT_MODEL,
-    hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
+    credentials: process.env.ANTHROPIC_API_KEY?.trim() ? 'api-key' : 'claude-subscription',
   };
 }

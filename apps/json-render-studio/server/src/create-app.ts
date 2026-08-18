@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 
 import { buildStudioUserPrompt } from './build-user-prompt.js';
+import { streamViaClaudeSubscription } from './claude-subscription.js';
 import type { StudioConfig } from './config.js';
 import { SYSTEM_PROMPT } from './system-prompt.js';
 
@@ -18,27 +19,40 @@ const generateRequestSchema = z.object({
 export function createApp(config: StudioConfig): Hono {
   const app = new Hono();
 
-  app.get('/api/status', (context) => context.json({ model: config.model, hasApiKey: config.hasApiKey }));
+  app.get('/api/status', (context) => context.json({ model: config.model, credentials: config.credentials }));
 
   // The prompt is the catalog's product, so expose it: tuning a component description is a
   // studio workflow, and the only way to see the effect is to read what the catalog emitted.
   app.get('/api/system-prompt', (context) => context.text(SYSTEM_PROMPT));
 
   app.post('/api/generate', async (context) => {
-    if (!config.hasApiKey) {
-      return context.json({ error: 'ANTHROPIC_API_KEY is not set. Add it to apps/json-render-studio/.env.' }, 400);
-    }
-
     const parsed = generateRequestSchema.safeParse(await context.req.json());
     if (!parsed.success) {
       return context.json({ error: 'Expected { prompt: string, currentSpec?: object | null }.' }, 400);
+    }
+
+    const prompt = buildStudioUserPrompt(parsed.data.prompt, parsed.data.currentSpec ?? null);
+
+    if (config.credentials === 'claude-subscription') {
+      try {
+        return await respondWithText(
+          streamViaClaudeSubscription({
+            model: config.model,
+            system: SYSTEM_PROMPT,
+            prompt,
+            maxOutputTokens: MAX_OUTPUT_TOKENS,
+          })
+        );
+      } catch (error) {
+        return context.json({ error: `Claude Code could not generate: ${describe(error)}` }, 502);
+      }
     }
 
     const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const result = streamText({
       model: anthropic(config.model),
       system: SYSTEM_PROMPT,
-      prompt: buildStudioUserPrompt(parsed.data.prompt, parsed.data.currentSpec ?? null),
+      prompt,
       maxOutputTokens: MAX_OUTPUT_TOKENS,
     });
 
@@ -46,4 +60,37 @@ export function createApp(config: StudioConfig): Hono {
   });
 
   return app;
+}
+
+/**
+ * Sends text as it arrives, but waits for the first chunk before answering: Claude Code reports a
+ * missing login on that read, and a message the studio can show beats a stream that ends empty.
+ */
+async function respondWithText(chunks: AsyncIterable<string>): Promise<Response> {
+  const reader = chunks[Symbol.asyncIterator]();
+  const first = await reader.next();
+  const encoder = new TextEncoder();
+
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for (let step = first; !step.done; step = await reader.next()) {
+          controller.enqueue(encoder.encode(step.value));
+        }
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+    cancel: () => {
+      // Ends the Claude Code session rather than leaving it running for a browser that walked away.
+      void reader.return?.();
+    },
+  });
+
+  return new Response(body, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+}
+
+function describe(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

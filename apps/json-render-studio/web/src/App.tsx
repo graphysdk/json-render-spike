@@ -62,17 +62,11 @@ export const App = (): ReactElement => {
     <div className="studio-shell">
       <header className="studio-header">
         <h1 className="studio-title">json-render studio</h1>
-        <span className="studio-model">{status === null ? 'connecting…' : status.model}</span>
+        <span className="studio-model">{status === null ? 'connecting…' : describeStatus(status)}</span>
       </header>
 
       <div className="studio-body">
         <aside className="studio-sidebar">
-          {status !== null && !status.hasApiKey && (
-            <p className="studio-status studio-status--error">
-              ANTHROPIC_API_KEY is not set. Add it to apps/json-render-studio/.env.
-            </p>
-          )}
-
           <p className="studio-blurb">{BLURB}</p>
 
           <form className="studio-inspector" onSubmit={submit}>
@@ -181,6 +175,12 @@ export const App = (): ReactElement => {
     </div>
   );
 };
+
+function describeStatus(status: StudioStatus): string {
+  // Which credentials are paying for a generation is worth seeing before you fire one off.
+  const source = status.credentials === 'claude-subscription' ? ' · Claude subscription' : '';
+  return `${status.model}${source}`;
+}
 
 function readPanel(panel: InspectorPanel, generation: GenerationControls, systemPrompt: string | null): string {
   if (panel === 'prompt') {

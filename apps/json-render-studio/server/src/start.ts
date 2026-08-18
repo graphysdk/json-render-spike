@@ -18,8 +18,8 @@ const app = createApp(studioConfig);
 
 console.info(`[json-render-studio] API on http://127.0.0.1:${studioConfig.port}`);
 console.info(`[json-render-studio] model: ${studioConfig.model}`);
-if (!studioConfig.hasApiKey) {
-  console.warn('[json-render-studio] ANTHROPIC_API_KEY is not set — generation will return 400.');
+if (studioConfig.credentials === 'claude-subscription') {
+  console.info('[json-render-studio] ANTHROPIC_API_KEY is not set — generating through your Claude subscription.');
 }
 
 serve({
