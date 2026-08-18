@@ -112,6 +112,13 @@ const wherePredicateSchema = z.union([
   z.object({ variable: z.string(), gte: dataValueSchema }),
 ]);
 
+/** Predicate-driven emphasis: matched marks keep full paint while everything else dims. */
+const highlightSchema = z.object({
+  type: z.literal('highlight'),
+  predicate: wherePredicateSchema,
+  scope: z.enum(['data-point', 'series', 'x-value']).optional(),
+});
+
 /**
  * Names come from the catalog itself, so registering a geom widens what a chart component may be
  * authored with. `z.enum` wants a non-empty tuple; the catalogs are never empty.
@@ -203,5 +210,7 @@ export const graphyChartPropsSchema = z.object({
     config: configSchema.optional(),
     /** Repaints marks and chrome. Use when the user asks for specific colors or label styling. */
     styles: stylesSchema.optional(),
+    /** Emphasis for "call out X" asks — the matched marks stay loud, the rest dim. */
+    highlights: z.array(highlightSchema).optional(),
   }),
 });

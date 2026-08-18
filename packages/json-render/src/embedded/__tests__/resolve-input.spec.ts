@@ -94,6 +94,24 @@ describe('resolveEmbeddedChartInput', () => {
     expect(result.ok && result.compiled.spec.coords).toMatchObject({ coordType: 'polar' });
   });
 
+  it('compiles authored highlights, resolving each to a scoped id', () => {
+    const base = createLineChartProps();
+    const props: GraphyChartComponentProps = {
+      ...base,
+      spec: {
+        ...base.spec,
+        highlights: [{ type: 'highlight', predicate: { variable: 'region', eq: 'EMEA' }, scope: 'series' }],
+      },
+    };
+
+    const result = createCompiler().compile(resolveEmbeddedChartInput(props));
+
+    expect(result.ok).toBe(true);
+    const highlights = result.ok ? result.compiled.spec.highlights : [];
+    expect(highlights).toHaveLength(1);
+    expect(highlights[0]).toMatchObject({ scope: 'series', id: expect.any(String) as string });
+  });
+
   it('carries the whole grammar through to the engine spec', () => {
     const base = createLineChartProps();
     const props: GraphyChartComponentProps = {
