@@ -1,5 +1,6 @@
 /* Studio chrome. Deliberately plain CSS and namespaced under `studio-`: the preview surface belongs
-   to the generated spec, and nothing here should leak into it. */
+   to the generated spec, and nothing here should leak into it. Palette and radii follow the Geist
+   look: #eaeaea hairlines, #666/#999 muted text, #fafafa grounds, black as the only accent. */
 
 .studio-shell {
   display: grid;
@@ -11,8 +12,8 @@
     -apple-system,
     'Segoe UI',
     sans-serif;
-  color: #10121a;
-  background: #f4f5f8;
+  color: #171717;
+  background: #fafafa;
 }
 
 /* ─── Header ───────────────────────────────────────────────────────────────── */
@@ -23,8 +24,8 @@
   justify-content: space-between;
   gap: 16px;
   padding: 10px 20px;
-  background: #10121a;
-  color: #f4f5f8;
+  border-bottom: 1px solid #eaeaea;
+  background: #fff;
 }
 
 .studio-title {
@@ -32,42 +33,49 @@
   font-size: 14px;
   font-weight: 400;
   letter-spacing: -0.01em;
-  color: rgb(244 245 248 / 72%);
+  color: #666;
 }
 
 .studio-title-x {
-  color: rgb(244 245 248 / 38%);
+  color: #999;
 }
 
 .studio-title-brand {
-  font-weight: 650;
-  color: #fff;
+  font-weight: 600;
+  color: #000;
 }
 
 /* Preview/Code as a segmented control living in the header. */
 .studio-seg {
   display: flex;
   gap: 2px;
-  padding: 3px;
+  padding: 2px;
+  border: 1px solid #eaeaea;
   border-radius: 8px;
-  background: rgb(255 255 255 / 12%);
+  background: #fafafa;
 }
 
 .studio-seg-tab {
   padding: 4px 16px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   font: inherit;
-  font-size: 12.5px;
-  color: rgb(244 245 248 / 65%);
+  font-size: 13px;
+  color: #666;
   cursor: pointer;
 }
 
+.studio-seg-tab:hover {
+  color: #000;
+}
+
 .studio-seg-tab[aria-pressed='true'] {
+  border-color: #eaeaea;
   background: #fff;
-  color: #10121a;
-  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+  color: #000;
+  font-weight: 500;
 }
 
 /* ─── Layout ───────────────────────────────────────────────────────────────── */
@@ -81,11 +89,11 @@
 .studio-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
   min-height: 0;
-  padding: 16px;
+  padding: 20px 16px;
   overflow-y: auto;
-  border-right: 1px solid #dfe1e8;
+  border-right: 1px solid #eaeaea;
   background: #fff;
 }
 
@@ -98,10 +106,10 @@
 .studio-section-title {
   margin: 0;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #8a8fa3;
+  letter-spacing: 0.08em;
+  color: #999;
 }
 
 /* ─── Prompt form ──────────────────────────────────────────────────────────── */
@@ -112,20 +120,44 @@
   gap: 10px;
 }
 
+/* The one control the page is about: a quiet papaya glow sets it apart from the flat chrome. */
 .studio-prompt {
-  min-height: 104px;
-  padding: 10px 12px;
-  border: 1px solid #dfe1e8;
+  min-height: 128px;
+  padding: 12px 14px;
+  border: 1px solid #ffd8c0;
   border-radius: 10px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 5%),
+    0 0 0 3px rgb(255 138 76 / 8%),
+    0 0 20px rgb(255 138 76 / 22%);
   resize: vertical;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.studio-prompt::placeholder {
+  color: #999;
+}
+
+.studio-prompt:hover {
+  border-color: #ffc4a1;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 5%),
+    0 0 0 3px rgb(255 138 76 / 12%),
+    0 0 24px rgb(255 138 76 / 28%);
 }
 
 .studio-prompt:focus {
-  border-color: #10121a;
+  border-color: #ff9a62;
   outline: none;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 5%),
+    0 0 0 3px rgb(255 138 76 / 16%),
+    0 0 28px rgb(255 138 76 / 34%);
 }
 
 .studio-actions {
@@ -134,28 +166,36 @@
 }
 
 .studio-button {
-  padding: 8px 14px;
-  border: 1px solid #dfe1e8;
-  border-radius: 8px;
+  padding: 7px 14px;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
   background: #fff;
   font: inherit;
   font-size: 13px;
+  font-weight: 500;
+  color: #666;
   cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .studio-button:hover:not(:disabled) {
-  background: #f4f5f8;
+  border-color: #999;
+  color: #000;
 }
 
 .studio-button--primary {
-  border-color: #10121a;
-  background: #10121a;
+  border-color: #000;
+  background: #000;
   color: #fff;
-  font-weight: 600;
 }
 
 .studio-button--primary:hover:not(:disabled) {
-  background: #272b38;
+  border-color: #383838;
+  background: #383838;
+  color: #fff;
 }
 
 .studio-button:disabled {
@@ -166,11 +206,11 @@
 .studio-status {
   margin: 0;
   font-size: 12px;
-  color: #8a8fa3;
+  color: #999;
 }
 
 .studio-status--error {
-  color: #b4232a;
+  color: #e5484d;
 }
 
 /* ─── Pickers ──────────────────────────────────────────────────────────────── */
@@ -190,17 +230,23 @@
 
 .studio-select {
   width: 100%;
-  padding: 7px 10px;
-  border: 1px solid #dfe1e8;
-  border-radius: 8px;
+  padding: 6px 10px;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
   background: #fff;
   font: inherit;
   font-size: 13px;
   cursor: pointer;
+  transition: border-color 0.15s ease;
 }
 
 .studio-select:hover {
-  border-color: #c6cad6;
+  border-color: #999;
+}
+
+.studio-select:focus {
+  border-color: #999;
+  outline: none;
 }
 
 /* ─── Examples ─────────────────────────────────────────────────────────────── */
@@ -213,21 +259,23 @@
 
 .studio-example {
   padding: 8px 10px;
-  border: 1px solid #e7e9ef;
-  border-radius: 8px;
-  background: #fbfbfd;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  background: #fff;
   font: inherit;
   font-size: 12px;
   line-height: 1.45;
-  color: #3c4152;
+  color: #666;
   text-align: left;
   cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .studio-example:hover {
-  border-color: #c6cad6;
-  background: #fff;
-  color: #10121a;
+  background: #fafafa;
+  color: #000;
 }
 
 /* ─── Issues ───────────────────────────────────────────────────────────────── */
@@ -242,17 +290,19 @@
 }
 
 .studio-issue {
-  padding: 6px 8px;
-  border-left: 3px solid #d6a419;
-  border-radius: 0 6px 6px 0;
-  background: #fdf7e6;
+  padding: 6px 10px;
+  border: 1px solid #f5e0a3;
+  border-radius: 6px;
+  background: #fff9eb;
   font-size: 12px;
   line-height: 1.4;
+  color: #6d5710;
 }
 
 .studio-issue--error {
-  border-left-color: #b4232a;
-  background: #fdeceb;
+  border-color: #f2c4c6;
+  background: #fef1f1;
+  color: #99222a;
 }
 
 /* ─── Inspector ────────────────────────────────────────────────────────────── */
@@ -268,42 +318,45 @@
 
 .studio-tabs {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .studio-tab {
   padding: 4px 10px;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 6px;
   background: transparent;
   font: inherit;
   font-size: 12px;
-  color: #5b6072;
+  color: #999;
   cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .studio-tab:hover {
-  color: #10121a;
+  color: #000;
 }
 
 .studio-tab[aria-pressed='true'] {
-  border-color: #dfe1e8;
-  background: #f4f5f8;
-  color: #10121a;
-  font-weight: 600;
+  background: #f2f2f2;
+  color: #000;
+  font-weight: 500;
 }
 
 .studio-code {
   max-height: 340px;
   margin: 0;
-  padding: 10px;
+  padding: 10px 12px;
   overflow: auto;
-  border: 1px solid #e7e9ef;
-  border-radius: 8px;
-  background: #fbfbfd;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  background: #fafafa;
   font-family: ui-monospace, sfmono-regular, menlo, monospace;
   font-size: 11px;
   line-height: 1.5;
+  color: #444;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -335,23 +388,24 @@
   align-items: center;
   gap: 10px;
   padding: 8px 20px;
-  border-bottom: 1px solid #dfe1e8;
+  border-bottom: 1px solid #eaeaea;
   background: #fff;
 }
 
 .studio-code-name {
   font-family: ui-monospace, sfmono-regular, menlo, monospace;
   font-size: 12px;
-  color: #5b6072;
+  color: #666;
 }
 
 /* What the spec asked for that plain React cannot express — worth seeing before the code is copied. */
 .studio-code-notes {
   padding: 2px 8px;
+  border: 1px solid #f5e0a3;
   border-radius: 999px;
-  background: #fdf7e6;
+  background: #fff9eb;
   font-size: 11px;
-  color: #7a6212;
+  color: #6d5710;
   cursor: help;
 }
 
@@ -366,7 +420,7 @@
   margin: 0;
   padding: 16px 20px;
   overflow: auto;
-  background: #fbfbfd;
+  background: #fafafa;
   font-family: ui-monospace, sfmono-regular, menlo, monospace;
   font-size: 12px;
   line-height: 1.6;
@@ -381,17 +435,17 @@
   height: 100%;
   margin: 0;
   font-size: 13px;
-  color: #8a8fa3;
+  color: #999;
 }
 
 .studio-preview-error {
   padding: 16px;
-  border: 1px solid #f0b6b3;
+  border: 1px solid #f2c4c6;
   border-radius: 8px;
-  background: #fdeceb;
+  background: #fef1f1;
   font-size: 13px;
   line-height: 1.5;
-  color: #7c1f1f;
+  color: #99222a;
 }
 
 .studio-preview-error p {
