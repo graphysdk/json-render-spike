@@ -109,4 +109,39 @@ describe('applyChartStyle', () => {
     expect(result.ok).toBe(true);
     expect(JSON.stringify(result.ok ? result.compiled.layers : [])).toContain('#D72B1C');
   });
+
+  it('paints only the observations a conditioned override matches', () => {
+    const data: Data = {
+      columns: [{ key: 'month' }, { key: 'revenue' }],
+      rows: [
+        { month: 'Jan', revenue: 120 },
+        { month: 'Feb', revenue: 90 },
+        { month: 'Mar', revenue: 145 },
+      ],
+    };
+    const conditioned = createSpecInput({
+      mapping: { x: 'month', y: 'revenue' },
+      scales: [
+        { type: 'scale', scaledAesthetic: 'x', scaleType: 'inferred' },
+        { type: 'scale', scaledAesthetic: 'y', scaleType: 'continuous' },
+      ],
+      styles: {
+        type: 'styles',
+        overrides: [
+          {
+            select: { target: 'geom', kind: 'bar' },
+            declarations: { color: '#D72B1C' },
+            when: { where: { variable: 'month', eq: 'Feb' } },
+          },
+        ],
+      },
+    });
+
+    const styled = applyChartStyle(conditioned, 'braun');
+    const result = createCompiler().compile({ input: styled.input, data, customPalettes: styled.customPalettes });
+
+    expect(result.ok).toBe(true);
+    const reds = JSON.stringify(result.ok ? result.compiled.layers : []).match(/#D72B1C/g) ?? [];
+    expect(reds).toHaveLength(1);
+  });
 });

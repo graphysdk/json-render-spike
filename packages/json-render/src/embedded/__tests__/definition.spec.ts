@@ -84,6 +84,48 @@ describe('graphyChartPropsSchema', () => {
     expect(result.error?.issues ?? [], JSON.stringify(result.error?.issues)).toEqual([]);
   });
 
+  it('accepts a conditioned geom entry, which is how a model reds a single bar', () => {
+    const props = createLineChartProps();
+    const conditioned = {
+      ...props,
+      spec: {
+        ...props.spec,
+        styles: {
+          overrides: [
+            {
+              select: { target: 'geom', kind: 'bar' },
+              declarations: { color: '#D72B1C' },
+              when: { where: { variable: 'month', eq: 'Jan' } },
+            },
+          ],
+        },
+      },
+    };
+
+    expect(graphyChartPropsSchema.safeParse(conditioned).success).toBe(true);
+  });
+
+  it('rejects a condition on a chrome entry, which the engine defines as condition-free', () => {
+    const props = createLineChartProps();
+    const conditionedChrome = {
+      ...props,
+      spec: {
+        ...props.spec,
+        styles: {
+          defaults: [
+            {
+              select: { target: 'axisLabel' },
+              declarations: { textColor: '#111111' },
+              when: { where: { variable: 'month', eq: 'Jan' } },
+            },
+          ],
+        },
+      },
+    };
+
+    expect(graphyChartPropsSchema.safeParse(conditionedChrome).success).toBe(false);
+  });
+
   it('rejects a stylesheet entry aimed at a target the surface does not carry', () => {
     const props = createLineChartProps();
     const offTarget = {

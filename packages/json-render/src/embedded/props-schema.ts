@@ -100,6 +100,18 @@ const styleDeclarationsSchema = z.object({
   fontWeight: z.number().optional(),
 });
 
+const dataValueSchema = z.union([z.string(), z.number(), z.null()]);
+
+/** An observation match over a post-transform variable, for targeting single marks. */
+const wherePredicateSchema = z.union([
+  z.object({ variable: z.string(), eq: dataValueSchema }),
+  z.object({ variable: z.string(), oneOf: z.array(dataValueSchema) }),
+  z.object({ variable: z.string(), lt: dataValueSchema }),
+  z.object({ variable: z.string(), lte: dataValueSchema }),
+  z.object({ variable: z.string(), gt: dataValueSchema }),
+  z.object({ variable: z.string(), gte: dataValueSchema }),
+]);
+
 /**
  * Names come from the catalog itself, so registering a geom widens what a chart component may be
  * authored with. `z.enum` wants a non-empty tuple; the catalogs are never empty.
@@ -107,7 +119,10 @@ const styleDeclarationsSchema = z.object({
 const namesOf = (definitions: Record<string, unknown>): [string, ...string[]] =>
   Object.keys(definitions) as [string, ...string[]];
 
-/** One stylesheet entry: what it styles, and the declarations. No conditions on this surface yet. */
+/**
+ * One stylesheet entry: what it styles, and the declarations. Only geom entries take conditions —
+ * chrome is chart-scoped and condition-free by the engine's own contract.
+ */
 const styleRuleSchema = z.union([
   z.object({
     select: z.object({
@@ -115,8 +130,10 @@ const styleRuleSchema = z.union([
       kind: z.enum(namesOf(standardGeomDefinitions)).optional(),
     }),
     declarations: styleDeclarationsSchema,
+    when: z.object({ where: wherePredicateSchema }).optional(),
   }),
-  z.object({
+  // Strict, so a condition on a chrome entry is rejected rather than silently stripped.
+  z.strictObject({
     select: z.object({ target: z.enum(['dataLabel', 'axisLabel', 'tickLabel', 'graph']) }),
     declarations: styleDeclarationsSchema,
   }),
