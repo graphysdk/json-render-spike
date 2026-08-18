@@ -1,11 +1,11 @@
-import { type FormEvent, type ReactElement, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 
 import { CHART_STYLE_NAMES, type ChartStyleName, readChartStyleName } from '@graphysdk/json-render';
 
 import { fetchStatus, fetchSystemPrompt, type StudioStatus } from './api';
 import { findChartIssues } from './chart-issues';
 import { CodePanel } from './CodePanel';
-import { EXAMPLE_PROMPTS, findPageIssues, isPageEmpty } from './page-spec';
+import { EXAMPLE_PROMPTS, findPageIssues, isPageEmpty, type StudioIssue } from './page-spec';
 import { PagePreview } from './PagePreview';
 import { PreviewBoundary } from './PreviewBoundary';
 import { type GenerationControls, useGeneration } from './use-generation';
@@ -56,6 +56,7 @@ export const App = (): ReactElement => {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (prompt.trim() !== '' && !streaming) {
+      hasAutoRepairedRef.current = false;
       void generation.generate(prompt);
     }
   };
@@ -70,6 +71,26 @@ export const App = (): ReactElement => {
         : [...findPageIssues(generation.spec), ...findChartIssues(generation.spec)],
     [generation.spec, streaming]
   );
+
+  // One automatic repair per user prompt: when a finished generation leaves charts the compiler
+  // rejects, refine once with the diagnostics. A repair that fails again is the user's call.
+  const hasAutoRepairedRef = useRef(false);
+  const [isAutoRepairing, setIsAutoRepairing] = useState(false);
+  useEffect(() => {
+    if (generation.status !== 'streaming' && isAutoRepairing) {
+      setIsAutoRepairing(false);
+    }
+    if (generation.status !== 'done' || hasAutoRepairedRef.current) {
+      return;
+    }
+    const chartErrors = issues.filter((issue) => issue.severity === 'error' && issue.message.startsWith('Chart "'));
+    if (chartErrors.length === 0) {
+      return;
+    }
+    hasAutoRepairedRef.current = true;
+    setIsAutoRepairing(true);
+    void generation.generate(buildRepairPrompt(chartErrors));
+  }, [generation, issues, isAutoRepairing]);
 
   return (
     <div className="studio-shell">
@@ -99,7 +120,14 @@ export const App = (): ReactElement => {
                 </button>
               )}
               {hasSpec && !streaming && (
-                <button type="button" className="studio-button" onClick={generation.reset}>
+                <button
+                  type="button"
+                  className="studio-button"
+                  onClick={() => {
+                    hasAutoRepairedRef.current = false;
+                    generation.reset();
+                  }}
+                >
                   Clear
                 </button>
               )}
@@ -107,7 +135,8 @@ export const App = (): ReactElement => {
           </form>
 
           <p className={generation.error === null ? 'studio-status' : 'studio-status studio-status--error'}>
-            {generation.error ?? describeProgress(generation)}
+            {generation.error ??
+              (isAutoRepairing ? `Repairing charts — ${describeProgress(generation)}` : describeProgress(generation))}
           </p>
 
           <label className="studio-style-picker">
@@ -204,6 +233,13 @@ export const App = (): ReactElement => {
     </div>
   );
 };
+
+function buildRepairPrompt(chartErrors: StudioIssue[]): string {
+  return [
+    'Some charts failed to compile. Fix only the broken chart props; change nothing else on the page.',
+    ...chartErrors.map((issue) => `- ${issue.message}`),
+  ].join('\n');
+}
 
 function formatStyleLabel(name: string): string {
   return name
