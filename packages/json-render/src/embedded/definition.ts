@@ -15,7 +15,7 @@ import { type GraphyChartComponentProps, graphyChartPropsSchema } from './props-
 
 /** Leaves every optional field out — except `style`, which a chart normally carries. */
 const EXAMPLE_PROPS: GraphyChartComponentProps = {
-  height: 360,
+  height: 400,
   style: 'braun',
   rows: [
     { month: 'Jan', region: 'EMEA', revenue: 120 },
@@ -81,7 +81,7 @@ function buildChartDescription(): string {
 
   return [
     'A chart built from a grammar of graphics: `rows` holds its data inline, `spec` says what to draw from them.',
-    'Give a chart room: `height` 360 for a full-width chart, 420 or more inside a multi-column grid cell — squat charts read squished.',
+    'Give a chart room: `height` 400 for a full-width chart, 460 or more inside a multi-column grid cell — squat charts read squished.',
     'Write `spec` before `rows` inside the props, so a streaming host can start drawing the chart while the rows are still arriving.',
     ...sections,
     `CHANNELS: ${AESTHETIC_CHANNELS.join('. ')}.`,

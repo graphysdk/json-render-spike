@@ -19,10 +19,10 @@ describe('GraphyChartComponent', () => {
     expect((container.firstElementChild as HTMLElement).style.height).toBe('480px');
   });
 
-  it('falls back to a 360px box, since a page layout rarely constrains a cell vertically', () => {
+  it('falls back to a 400px box, since a page layout rarely constrains a cell vertically', () => {
     const { container } = render(<GraphyChartComponent props={createLineChartProps()} />);
 
-    expect((container.firstElementChild as HTMLElement).style.height).toBe('360px');
+    expect((container.firstElementChild as HTMLElement).style.height).toBe('400px');
   });
 
   it('mounts a chart under a baked-in style, whether the host or the props chose it', () => {
