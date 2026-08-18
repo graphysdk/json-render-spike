@@ -51,6 +51,28 @@ describe('resolveEmbeddedChartInput', () => {
     expect(resolveEmbeddedChartInput({} as unknown as GraphyChartComponentProps).data.rows).toEqual([]);
   });
 
+  it('drops a transform whose options never arrived, which the compiler would fault on', () => {
+    // While streaming, a transform node lands one patch before its options — and stays bare forever
+    // when that patch was dropped. The compiler reads the options unguarded (INTERNAL_INVARIANT).
+    const base = createLineChartProps();
+    const halfStreamed = {
+      ...base,
+      spec: {
+        ...base.spec,
+        transforms: [
+          { type: 'transform', transformType: 'reshape' },
+          { type: 'transform', transformType: 'sort', options: { variableName: 'revenue' } },
+        ],
+      },
+    } as unknown as GraphyChartComponentProps;
+
+    const { input, data } = resolveEmbeddedChartInput(halfStreamed);
+
+    expect(input.transforms).toHaveLength(1);
+    expect(input.transforms[0]).toMatchObject({ transformType: 'sort' });
+    expect(createCompiler().compile({ input, data }).ok).toBe(true);
+  });
+
   it('unwraps rows a host resolved one level too deep', () => {
     // `rows: [{"$state": "/data/sales"}]` resolves to the array inside the array.
     const wrapped = {

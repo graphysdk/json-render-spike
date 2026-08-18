@@ -104,7 +104,11 @@ function isRenderable(input: SpecInput, data: Data): boolean {
   const scaledAesthetics = new Set<string>(input.scales.map((scale) => scale.scaledAesthetic));
   if (!mappedPositions.every((aesthetic) => scaledAesthetics.has(aesthetic))) return false;
 
-  return createCompiler().compile({ input, data }).ok;
+  try {
+    return createCompiler().compile({ input, data }).ok;
+  } catch {
+    return false;
+  }
 }
 
 /** Pulsing bar glyph filling the chart's box while a host streams the props in. */

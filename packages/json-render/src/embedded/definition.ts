@@ -82,6 +82,7 @@ function buildChartDescription(): string {
   return [
     'A chart built from a grammar of graphics: `rows` holds its data inline, `spec` says what to draw from them.',
     'Give a chart room: `height` 360 for a full-width chart, 420 or more inside a multi-column grid cell — squat charts read squished.',
+    'Write `spec` before `rows` inside the props, so a streaming host can start drawing the chart while the rows are still arriving.',
     ...sections,
     `CHANNELS: ${AESTHETIC_CHANNELS.join('. ')}.`,
     `RULES: ${CHART_GRAMMAR_RULES.join('. ')}.`,

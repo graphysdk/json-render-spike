@@ -32,7 +32,9 @@ export function resolveEmbeddedChartInput(props: GraphyChartComponentProps): { i
       mapping: spec.mapping ?? {},
       layers: spec.layers ?? [],
       scales: spec.scales ?? [],
-      transforms: spec.transforms ?? [],
+      // A transform node lands one patch before its options while streaming (and stays bare when
+      // that patch was dropped); the compiler faults on it, so an optionless node is not there yet.
+      transforms: (spec.transforms ?? []).filter((transform) => transform.options !== undefined),
       highlights: spec.highlights ?? [],
       config: spec.config ?? {},
       // An authored stylesheet arrives without the pipe tag the builders stamp; add it so the
