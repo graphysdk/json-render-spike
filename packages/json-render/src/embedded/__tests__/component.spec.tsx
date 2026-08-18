@@ -6,6 +6,12 @@ import type { GraphyChartComponentProps } from '../props-schema';
 
 import { createLineChartProps } from './fixtures';
 
+/** Props as they look mid-stream: mapping and layers landed, the scales have not. */
+function createScalelessProps(): GraphyChartComponentProps {
+  const props = createLineChartProps();
+  return { ...props, spec: { ...props.spec, scales: [] } };
+}
+
 describe('GraphyChartComponent', () => {
   it('gives the chart a box of the authored pixel height', () => {
     const { container } = render(<GraphyChartComponent props={{ ...createLineChartProps(), height: 480 }} />);
@@ -24,16 +30,26 @@ describe('GraphyChartComponent', () => {
     expect(() => render(<GraphyChartComponent props={{ ...createLineChartProps(), style: 'braun' }} />)).not.toThrow();
   });
 
-  it('holds a placeholder while the host is still streaming the props', () => {
-    // Half-built props would compile to errors; the placeholder keeps the box calm until settle.
-    const { container } = render(<GraphyChartComponent props={createLineChartProps()} loading />);
+  it('holds a placeholder while the streamed props cannot draw yet', () => {
+    // The scales have not streamed in, so mounting the provider would paint marks at NaN positions.
+    const scaleless = createScalelessProps();
+
+    const { container } = render(<GraphyChartComponent props={scaleless} loading />);
 
     expect(container.querySelector('[data-testid="graphy-chart-placeholder"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="graph-sizer"]')).toBeNull();
   });
 
+  it('renders the chart mid-stream once the props can already draw', () => {
+    // Rows keep arriving after this point; the provider recompiles and animates them in.
+    const { container } = render(<GraphyChartComponent props={createLineChartProps()} loading />);
+
+    expect(container.querySelector('[data-testid="graph-sizer"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="graphy-chart-placeholder"]')).toBeNull();
+  });
+
   it('paints the placeholder in the active style plate color', () => {
-    const { container } = render(<GraphyChartComponent props={createLineChartProps()} chartStyle="braun" loading />);
+    const { container } = render(<GraphyChartComponent props={createScalelessProps()} chartStyle="braun" loading />);
 
     const placeholder = container.querySelector('[data-testid="graphy-chart-placeholder"]') as HTMLElement;
     expect(placeholder.style.background).toMatch(/239, 237, 232|#EFEDE8/i);

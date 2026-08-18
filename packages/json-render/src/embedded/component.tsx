@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 
 import { GraphProvider, GraphRenderer } from '@graphysdk/react';
-import type { ColorScheme, CustomPalettesInput, Locale, Plugin } from '@graphysdk/viz-engine';
+import type { ColorScheme, CustomPalettesInput, Data, Locale, Plugin, SpecInput } from '@graphysdk/viz-engine';
+import { createCompiler } from '@graphysdk/viz-engine';
 
 import { chartStylePlugins } from '../styles/chart-style-plugins';
 import { chartStyleSlots } from '../styles/chart-style-slots';
@@ -18,7 +19,7 @@ export interface GraphyChartComponentRenderProps {
   customPalettes?: CustomPalettesInput;
   /** Host-chosen style override. When set it wins over a `style` authored on the props. */
   chartStyle?: ChartStyleName;
-  /** The host's streaming flag. While true the chart holds a placeholder instead of compiling half-built props. */
+  /** The host's streaming flag. While true the chart renders as much as the streamed props can already draw, holding a placeholder until they can. */
   // eslint-disable-next-line react/boolean-prop-naming -- mirrors the host registry's ComponentContext field, which a wrapper spreads through verbatim
   loading?: boolean;
 }
@@ -49,11 +50,12 @@ export const GraphyChartComponent = ({
 }: GraphyChartComponentRenderProps): ReactElement => {
   const styleName = chartStyle ?? readChartStyleName(props.style);
   const box = { height: props.height ?? DEFAULT_HEIGHT, width: '100%' };
+  const { input, data } = resolveEmbeddedChartInput(props);
 
-  // While the host is still streaming, the props are half-built by definition — mounting the
-  // provider would compile them and paint the failures. Hold an intentional placeholder instead,
-  // already wearing the style's plate color when one is known.
-  if (loading === true) {
+  // While the host is still streaming, render as much chart as the props can already draw — the
+  // provider recompiles on every flush and animates the marks as rows arrive. Until the streamed
+  // props reach a drawable state, hold an intentional placeholder in the style's plate color.
+  if (loading === true && !isRenderable(input, data)) {
     const activeStyle = styleName === undefined ? undefined : chartStyles[styleName];
     return (
       <div style={box}>
@@ -64,8 +66,6 @@ export const GraphyChartComponent = ({
       </div>
     );
   }
-
-  const { input, data } = resolveEmbeddedChartInput(props);
   const styled = styleName === undefined ? undefined : applyChartStyle(input, styleName);
   const stylePlugins = styleName === undefined ? undefined : chartStylePlugins[styleName];
 
@@ -87,6 +87,25 @@ export const GraphyChartComponent = ({
     </div>
   );
 };
+
+/**
+ * Whether half-streamed props already draw a sensible chart. Compiling is not enough — the engine
+ * accepts a spec with no layers or no position scales (they just draw nothing, at NaN positions) —
+ * so the structural minimum is checked first, then a headless compile catches the rest, like a
+ * mapping onto a column the rows have not reached yet.
+ */
+function isRenderable(input: SpecInput, data: Data): boolean {
+  if (data.rows.length === 0 || input.layers.length === 0) return false;
+
+  const mappedPositions = ['x', 'y', 'ySecondary'].filter(
+    (aesthetic) =>
+      input.mapping[aesthetic] !== undefined || input.layers.some((layer) => layer.mapping?.[aesthetic] !== undefined)
+  );
+  const scaledAesthetics = new Set<string>(input.scales.map((scale) => scale.scaledAesthetic));
+  if (!mappedPositions.every((aesthetic) => scaledAesthetics.has(aesthetic))) return false;
+
+  return createCompiler().compile({ input, data }).ok;
+}
 
 /** Pulsing bar glyph filling the chart's box while a host streams the props in. */
 const ChartPlaceholder = ({ background, glyphColor }: { background?: string; glyphColor?: string }): ReactElement => (
