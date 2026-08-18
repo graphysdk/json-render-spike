@@ -4,6 +4,7 @@ import { GraphProvider, GraphRenderer } from '@graphysdk/react';
 import type { ColorScheme, CustomPalettesInput, Locale, Plugin } from '@graphysdk/viz-engine';
 
 import { chartStylePlugins } from '../styles/chart-style-plugins';
+import { chartStyleSlots } from '../styles/chart-style-slots';
 import { applyChartStyle, type ChartStyleName, chartStyles, readChartStyleName } from '../styles/chart-styles';
 
 import type { GraphyChartComponentProps } from './props-schema';
@@ -81,7 +82,7 @@ export const GraphyChartComponent = ({
         customPalettes={styled === undefined ? customPalettes : { ...customPalettes, ...styled.customPalettes }}
         themeOverrides={styled?.themeOverrides}
       >
-        <GraphRenderer />
+        <GraphRenderer slots={styleName === undefined ? undefined : chartStyleSlots[styleName]} />
       </GraphProvider>
     </div>
   );

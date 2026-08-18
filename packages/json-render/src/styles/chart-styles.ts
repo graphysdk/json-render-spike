@@ -8,6 +8,7 @@ import { financialTimesChartStyle } from './financial-times';
 import { internationalChartStyle } from './international';
 import { lennysNewsletterChartStyle } from './lennys-newsletter';
 import { mexicoChartStyle } from './mexico';
+import { neoBrutalistChartStyle } from './neo-brutalist';
 
 export type ChartStyleName = (typeof CHART_STYLE_NAMES)[number];
 
@@ -24,6 +25,7 @@ export const CHART_STYLE_NAMES = [
   'international',
   'lennys-newsletter',
   'mexico-68',
+  'neo-brutalist',
 ] as const;
 
 /** The baked-in styles, keyed by the name a chart's `style` prop selects. */
@@ -33,6 +35,7 @@ export const chartStyles: Record<ChartStyleName, ChartStyle> = {
   international: internationalChartStyle,
   'lennys-newsletter': lennysNewsletterChartStyle,
   'mexico-68': mexicoChartStyle,
+  'neo-brutalist': neoBrutalistChartStyle,
 };
 
 /**

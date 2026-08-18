@@ -16,3 +16,4 @@
 export { GraphyChartComponent, type GraphyChartComponentRenderProps } from './embedded/component';
 export * from './server';
 export { chartStylePlugins } from './styles/chart-style-plugins';
+export { chartStyleSlots } from './styles/chart-style-slots';
