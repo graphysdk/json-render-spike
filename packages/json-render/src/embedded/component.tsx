@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import { GraphProvider, GraphRenderer } from '@graphysdk/react';
 import type { ColorScheme, CustomPalettesInput, Locale, Plugin } from '@graphysdk/viz-engine';
 
+import { chartStylePlugins } from '../styles/chart-style-plugins';
 import { applyChartStyle, type ChartStyleName, chartStyles, readChartStyleName } from '../styles/chart-styles';
 
 import type { GraphyChartComponentProps } from './props-schema';
@@ -65,13 +66,16 @@ export const GraphyChartComponent = ({
 
   const { input, data } = resolveEmbeddedChartInput(props);
   const styled = styleName === undefined ? undefined : applyChartStyle(input, styleName);
+  const stylePlugins = styleName === undefined ? undefined : chartStylePlugins[styleName];
 
   return (
     <div style={box}>
+      {/* The provider freezes plugins at mount, so a style flip must remount to swap renderers. */}
       <GraphProvider
+        key={styleName ?? 'unstyled'}
         input={styled?.input ?? input}
         data={data}
-        plugins={plugins}
+        plugins={stylePlugins === undefined ? plugins : [...stylePlugins, ...(plugins ?? [])]}
         colorScheme={colorScheme}
         formattingLocale={formattingLocale}
         customPalettes={styled === undefined ? customPalettes : { ...customPalettes, ...styled.customPalettes }}

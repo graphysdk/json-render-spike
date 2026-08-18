@@ -7,6 +7,7 @@ import type { ChartStyle } from './chart-style.types';
 import { financialTimesChartStyle } from './financial-times';
 import { internationalChartStyle } from './international';
 import { lennysNewsletterChartStyle } from './lennys-newsletter';
+import { mexicoChartStyle } from './mexico';
 
 export type ChartStyleName = (typeof CHART_STYLE_NAMES)[number];
 
@@ -17,7 +18,13 @@ export interface StyledChart {
   customPalettes: CustomPalettesInput;
 }
 
-export const CHART_STYLE_NAMES = ['braun', 'financial-times', 'international', 'lennys-newsletter'] as const;
+export const CHART_STYLE_NAMES = [
+  'braun',
+  'financial-times',
+  'international',
+  'lennys-newsletter',
+  'mexico-68',
+] as const;
 
 /** The baked-in styles, keyed by the name a chart's `style` prop selects. */
 export const chartStyles: Record<ChartStyleName, ChartStyle> = {
@@ -25,6 +32,7 @@ export const chartStyles: Record<ChartStyleName, ChartStyle> = {
   'financial-times': financialTimesChartStyle,
   international: internationalChartStyle,
   'lennys-newsletter': lennysNewsletterChartStyle,
+  'mexico-68': mexicoChartStyle,
 };
 
 /**
