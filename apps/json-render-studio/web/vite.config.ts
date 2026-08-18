@@ -23,6 +23,7 @@ export default defineConfig({
   },
   server: {
     port: 5190,
+    allowedHosts: ['pas-looksmart-trout-cow.trycloudflare.com'],
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:4320',
