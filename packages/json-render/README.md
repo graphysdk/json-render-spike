@@ -73,6 +73,12 @@ Nothing is translated between the two. The whole grammar is therefore reachable 
 
 A chart sizes to its cell, which a page layout rarely constrains vertically — hence the pixel `height` prop, defaulting to 320.
 
+## Baked-in styles
+
+A chart may name a `style` — `braun`, `financial-times`, `international`, `lennys-newsletter`, `mexico-68` or `neo-brutalist` — and arrive fully art-directed: renderer theme, chart chrome, series colors, and for the styles that carry them, custom geom renderers and legend swatches. The catalog entry teaches the model to pick the style that fits the request; a host can force its own with the `chartStyle` render prop, which wins over the authored one, and gets a style-aware placeholder while props stream in via the `loading` flag.
+
+Each style names the Google Fonts stylesheet its typefaces load from (`fontsUrl`), for the host page to load. The full contract lives on the exported symbols: `chartStyles`, `applyChartStyle`, `readChartStyleName`, and the React-side `chartStylePlugins` / `chartStyleSlots`.
+
 ## Rendering without React
 
 `resolveEmbeddedChartInput` pairs the authored spec with the dataset the engine reads it against, so the same props rasterise server-side as they do in a page:
@@ -107,4 +113,5 @@ Reaching a custom geom today means assembling your own definition from the expor
 src/
   grammar/    what a chart is — the catalog and the composition rules
   embedded/   the json-render integration — props schema, catalog entry, React component
+  styles/     the baked-in chart styles — one module per style, plus the registries
 ```
