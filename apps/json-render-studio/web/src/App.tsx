@@ -48,12 +48,16 @@ export const App = (): ReactElement => {
     }
   }, [panel]);
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
+  const send = () => {
     if (prompt.trim() !== '' && !streaming) {
       hasAutoRepairedRef.current = false;
       void generation.generate(prompt, model);
     }
+  };
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    send();
   };
 
   // A half-streamed spec fails validation by definition — dangling children, empty elements the model
@@ -112,10 +116,18 @@ export const App = (): ReactElement => {
         <aside className="studio-sidebar">
           <form className="studio-form" onSubmit={submit}>
             <textarea
+              autoFocus
               className="studio-prompt"
               value={prompt}
               placeholder={hasSpec ? 'Describe a change…' : 'Describe what to build…'}
               onChange={(event) => setPrompt(event.target.value)}
+              onKeyDown={(event) => {
+                // Enter sends, Shift+Enter breaks the line — the convention every AI input has taught.
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  send();
+                }
+              }}
             />
             <div className="studio-actions">
               <button type="submit" className="studio-button studio-button--primary" disabled={streaming}>
