@@ -4,7 +4,7 @@ import { CHART_STYLE_NAMES, type ChartStyleName, readChartStyleName } from '@gra
 
 import { STUDIO_MODELS, type StudioModelId } from '../../shared/studio-models';
 
-import { fetchStatus, fetchSystemPrompt, type StudioStatus } from './api';
+import { fetchSystemPrompt } from './api';
 import { findChartIssues } from './chart-issues';
 import { CodePanel } from './CodePanel';
 import { EXAMPLE_PROMPTS, findPageIssues, isPageEmpty, type StudioIssue } from './page-spec';
@@ -28,11 +28,7 @@ const SURFACES: Array<{ id: Surface; label: string }> = [
   { id: 'code', label: 'Code' },
 ];
 
-const BLURB =
-  'shadcn/ui components with state and actions. GraphyChart is one of the 37, and carries the whole grammar of graphics.';
-
 export const App = (): ReactElement => {
-  const [status, setStatus] = useState<StudioStatus | null>(null);
   const [prompt, setPrompt] = useState('');
   const [panel, setPanel] = useState<InspectorPanel>('spec');
   const [surface, setSurface] = useState<Surface>('preview');
@@ -43,10 +39,6 @@ export const App = (): ReactElement => {
   const generation = useGeneration();
   const streaming = generation.status === 'streaming';
   const hasSpec = generation.spec !== null && !isPageEmpty(generation.spec);
-
-  useEffect(() => {
-    fetchStatus().then(setStatus, () => setStatus(null));
-  }, []);
 
   // The prompt is the catalog's product; refetching on open is how you see a catalog edit land.
   useEffect(() => {
@@ -98,15 +90,27 @@ export const App = (): ReactElement => {
   return (
     <div className="studio-shell">
       <header className="studio-header">
-        <h1 className="studio-title">json-render studio</h1>
-        <span className="studio-model">{status === null ? 'connecting…' : describeStatus(status)}</span>
+        <h1 className="studio-title">
+          json-render <span className="studio-title-x">×</span> <span className="studio-title-brand">Graphy</span>
+        </h1>
+        <div className="studio-seg">
+          {SURFACES.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className="studio-seg-tab"
+              aria-pressed={surface === option.id}
+              onClick={() => setSurface(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </header>
 
       <div className="studio-body">
         <aside className="studio-sidebar">
-          <p className="studio-blurb">{BLURB}</p>
-
-          <form className="studio-inspector" onSubmit={submit}>
+          <form className="studio-form" onSubmit={submit}>
             <textarea
               className="studio-prompt"
               value={prompt}
@@ -135,46 +139,47 @@ export const App = (): ReactElement => {
                 </button>
               )}
             </div>
+            <p className={generation.error === null ? 'studio-status' : 'studio-status studio-status--error'}>
+              {generation.error ??
+                (isAutoRepairing ? `Repairing charts — ${describeProgress(generation)}` : describeProgress(generation))}
+            </p>
           </form>
 
-          <p className={generation.error === null ? 'studio-status' : 'studio-status studio-status--error'}>
-            {generation.error ??
-              (isAutoRepairing ? `Repairing charts — ${describeProgress(generation)}` : describeProgress(generation))}
-          </p>
+          <div className="studio-pickers">
+            <label className="studio-picker">
+              <span className="studio-section-title">Model</span>
+              <select
+                className="studio-select"
+                value={model}
+                onChange={(event) => setModel(event.target.value as StudioModelId)}
+              >
+                {STUDIO_MODELS.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="studio-style-picker">
-            <span className="studio-section-title">Model</span>
-            <select
-              className="studio-style-select"
-              value={model}
-              onChange={(event) => setModel(event.target.value as StudioModelId)}
-            >
-              {STUDIO_MODELS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="studio-style-picker">
-            <span className="studio-section-title">Chart style</span>
-            <select
-              className="studio-style-select"
-              value={chartStyle ?? ''}
-              onChange={(event) => setChartStyle(readChartStyleName(event.target.value))}
-            >
-              <option value="">Auto</option>
-              {CHART_STYLE_NAMES.map((name) => (
-                <option key={name} value={name}>
-                  {formatStyleLabel(name)}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="studio-picker">
+              <span className="studio-section-title">Chart style</span>
+              <select
+                className="studio-select"
+                value={chartStyle ?? ''}
+                onChange={(event) => setChartStyle(readChartStyleName(event.target.value))}
+              >
+                <option value="">Auto</option>
+                {CHART_STYLE_NAMES.map((name) => (
+                  <option key={name} value={name}>
+                    {formatStyleLabel(name)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
           {!hasSpec && !streaming && (
-            <>
+            <section className="studio-section">
               <h2 className="studio-section-title">Try</h2>
               <div className="studio-examples">
                 {EXAMPLE_PROMPTS.map((example) => (
@@ -183,11 +188,11 @@ export const App = (): ReactElement => {
                   </button>
                 ))}
               </div>
-            </>
+            </section>
           )}
 
           {issues.length > 0 && (
-            <>
+            <section className="studio-section">
               <h2 className="studio-section-title">Issues</h2>
               <ul className="studio-issues">
                 {issues.map((issue) => (
@@ -199,7 +204,7 @@ export const App = (): ReactElement => {
                   </li>
                 ))}
               </ul>
-            </>
+            </section>
           )}
 
           <div className="studio-inspector">
@@ -221,20 +226,6 @@ export const App = (): ReactElement => {
         </aside>
 
         <main className="studio-main">
-          <div className="studio-surface-tabs">
-            {SURFACES.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className="studio-surface-tab"
-                aria-pressed={surface === option.id}
-                onClick={() => setSurface(option.id)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-
           {!hasSpec || generation.spec === null ? (
             <p className="studio-empty">{streaming ? 'Generating…' : 'Nothing generated yet.'}</p>
           ) : surface === 'code' ? (
@@ -264,12 +255,6 @@ function formatStyleLabel(name: string): string {
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-}
-
-function describeStatus(status: StudioStatus): string {
-  // Which credentials are paying for a generation is worth seeing before you fire one off.
-  const source = status.credentials === 'claude-subscription' ? ' · Claude subscription' : '';
-  return `${status.model}${source}`;
 }
 
 function readPanel(panel: InspectorPanel, generation: GenerationControls, systemPrompt: string | null): string {

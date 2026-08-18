@@ -15,28 +15,62 @@
   background: #f4f5f8;
 }
 
+/* ─── Header ───────────────────────────────────────────────────────────────── */
+
 .studio-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
-  padding: 12px 20px;
+  padding: 10px 20px;
   background: #10121a;
   color: #f4f5f8;
 }
 
 .studio-title {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
   margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: rgb(244 245 248 / 72%);
 }
 
-.studio-model {
-  margin-left: auto;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  color: rgb(244 245 248 / 60%);
+.studio-title-x {
+  color: rgb(244 245 248 / 38%);
 }
+
+.studio-title-brand {
+  font-weight: 650;
+  color: #fff;
+}
+
+/* Preview/Code as a segmented control living in the header. */
+.studio-seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 12%);
+}
+
+.studio-seg-tab {
+  padding: 4px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: rgb(244 245 248 / 65%);
+  cursor: pointer;
+}
+
+.studio-seg-tab[aria-pressed='true'] {
+  background: #fff;
+  color: #10121a;
+  font-weight: 600;
+}
+
+/* ─── Layout ───────────────────────────────────────────────────────────────── */
 
 .studio-body {
   display: grid;
@@ -47,7 +81,7 @@
 .studio-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
   min-height: 0;
   padding: 16px;
   overflow-y: auto;
@@ -55,22 +89,43 @@
   background: #fff;
 }
 
-.studio-blurb {
+.studio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.studio-section-title {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #5b6072;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8a8fa3;
+}
+
+/* ─── Prompt form ──────────────────────────────────────────────────────────── */
+
+.studio-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .studio-prompt {
-  min-height: 110px;
-  padding: 10px;
+  min-height: 104px;
+  padding: 10px 12px;
   border: 1px solid #dfe1e8;
-  border-radius: 8px;
+  border-radius: 10px;
   font: inherit;
   font-size: 13px;
   line-height: 1.5;
   resize: vertical;
+}
+
+.studio-prompt:focus {
+  border-color: #10121a;
+  outline: none;
 }
 
 .studio-actions {
@@ -88,11 +143,19 @@
   cursor: pointer;
 }
 
+.studio-button:hover:not(:disabled) {
+  background: #f4f5f8;
+}
+
 .studio-button--primary {
   border-color: #10121a;
   background: #10121a;
   color: #fff;
   font-weight: 600;
+}
+
+.studio-button--primary:hover:not(:disabled) {
+  background: #272b38;
 }
 
 .studio-button:disabled {
@@ -101,37 +164,46 @@
 }
 
 .studio-status {
+  margin: 0;
   font-size: 12px;
-  color: #5b6072;
+  color: #8a8fa3;
 }
 
 .studio-status--error {
   color: #b4232a;
 }
 
-.studio-section-title {
-  margin: 4px 0 0;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #8a8fa3;
+/* ─── Pickers ──────────────────────────────────────────────────────────────── */
+
+.studio-pickers {
+  display: flex;
+  gap: 10px;
 }
 
-.studio-style-picker {
+.studio-picker {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
-.studio-style-select {
-  padding: 8px 10px;
+.studio-select {
+  width: 100%;
+  padding: 7px 10px;
   border: 1px solid #dfe1e8;
   border-radius: 8px;
   background: #fff;
   font: inherit;
   font-size: 13px;
+  cursor: pointer;
 }
+
+.studio-select:hover {
+  border-color: #c6cad6;
+}
+
+/* ─── Examples ─────────────────────────────────────────────────────────────── */
 
 .studio-examples {
   display: flex;
@@ -141,15 +213,24 @@
 
 .studio-example {
   padding: 8px 10px;
-  border: 1px solid #dfe1e8;
+  border: 1px solid #e7e9ef;
   border-radius: 8px;
   background: #fbfbfd;
   font: inherit;
   font-size: 12px;
   line-height: 1.45;
+  color: #3c4152;
   text-align: left;
   cursor: pointer;
 }
+
+.studio-example:hover {
+  border-color: #c6cad6;
+  background: #fff;
+  color: #10121a;
+}
+
+/* ─── Issues ───────────────────────────────────────────────────────────────── */
 
 .studio-issues {
   display: flex;
@@ -174,11 +255,15 @@
   background: #fdeceb;
 }
 
+/* ─── Inspector ────────────────────────────────────────────────────────────── */
+
+/* Sits at the bottom of the sidebar when the content above is short. */
 .studio-inspector {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-height: 0;
+  margin-top: auto;
 }
 
 .studio-tabs {
@@ -197,6 +282,10 @@
   cursor: pointer;
 }
 
+.studio-tab:hover {
+  color: #10121a;
+}
+
 .studio-tab[aria-pressed='true'] {
   border-color: #dfe1e8;
   background: #f4f5f8;
@@ -209,7 +298,7 @@
   margin: 0;
   padding: 10px;
   overflow: auto;
-  border: 1px solid #dfe1e8;
+  border: 1px solid #e7e9ef;
   border-radius: 8px;
   background: #fbfbfd;
   font-family: ui-monospace, sfmono-regular, menlo, monospace;
@@ -219,37 +308,13 @@
   word-break: break-word;
 }
 
-/* The main surface: a tab strip over whichever of the two views is showing. */
+/* ─── Main surface ─────────────────────────────────────────────────────────── */
+
 .studio-main {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 1fr;
   min-width: 0;
   min-height: 0;
-}
-
-.studio-surface-tabs {
-  display: flex;
-  gap: 2px;
-  padding: 0 20px;
-  border-bottom: 1px solid #dfe1e8;
-  background: #fff;
-}
-
-.studio-surface-tab {
-  padding: 10px 14px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  font: inherit;
-  font-size: 13px;
-  color: #5b6072;
-  cursor: pointer;
-}
-
-.studio-surface-tab[aria-pressed='true'] {
-  border-bottom-color: #10121a;
-  color: #10121a;
-  font-weight: 600;
 }
 
 .studio-preview {
@@ -314,6 +379,7 @@
   display: grid;
   place-items: center;
   height: 100%;
+  margin: 0;
   font-size: 13px;
   color: #8a8fa3;
 }
