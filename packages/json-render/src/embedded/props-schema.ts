@@ -119,6 +119,26 @@ const highlightSchema = z.object({
   scope: z.enum(['data-point', 'series', 'x-value']).optional(),
 });
 
+/** Where a note pins: to a data point by its x value (and series), or at panel fractions. */
+const pointAnchorSchema = z.union([
+  z.object({
+    anchorType: z.literal('observation'),
+    /** The x value of the observation to pin to. */
+    anchorValue: dataValueSchema,
+    /** The series the observation belongs to, when color is mapped. */
+    groupValue: dataValueSchema.optional(),
+  }),
+  z.object({ anchorType: z.literal('panel'), x: z.number(), y: z.number() }),
+]);
+
+/** A short note on the plot. The plain `text` becomes the engine's rich-text content on the way in. */
+const textAnnotationSchema = z.object({
+  text: z.string(),
+  at: pointAnchorSchema,
+  /** Width of the note's box, 0..1 of plot width. Defaults to 0.25. */
+  width: z.number().optional(),
+});
+
 /**
  * Names come from the catalog itself, so registering a geom widens what a chart component may be
  * authored with. `z.enum` wants a non-empty tuple; the catalogs are never empty.
@@ -212,5 +232,7 @@ export const graphyChartPropsSchema = z.object({
     styles: stylesSchema.optional(),
     /** Emphasis for "call out X" asks — the matched marks stay loud, the rest dim. */
     highlights: z.array(highlightSchema).optional(),
+    /** Notes pinned on the plot, for asks that need words on the chart itself. */
+    annotations: z.object({ textAnnotations: z.array(textAnnotationSchema).optional() }).optional(),
   }),
 });

@@ -112,6 +112,29 @@ describe('resolveEmbeddedChartInput', () => {
     expect(highlights[0]).toMatchObject({ scope: 'series', id: expect.any(String) as string });
   });
 
+  it('turns a note into the rich-text content the engine reads, and compiles it', () => {
+    const base = createLineChartProps();
+    const props: GraphyChartComponentProps = {
+      ...base,
+      spec: {
+        ...base.spec,
+        annotations: {
+          textAnnotations: [{ text: 'Holiday spike', at: { anchorType: 'observation', anchorValue: 'Feb' } }],
+        },
+      },
+    };
+
+    const { input, data } = resolveEmbeddedChartInput(props);
+
+    expect(input.annotations?.textAnnotations?.[0]).toMatchObject({
+      width: 0.25,
+      content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Holiday spike' }] }] },
+    });
+    const result = createCompiler().compile({ input, data });
+    const reason = result.ok ? '' : result.errors.map((diagnostic) => diagnostic.message).join('; ');
+    expect(result.ok, reason).toBe(true);
+  });
+
   it('carries the whole grammar through to the engine spec', () => {
     const base = createLineChartProps();
     const props: GraphyChartComponentProps = {

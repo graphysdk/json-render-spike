@@ -1,13 +1,18 @@
-import type { Data, SpecInput } from '@graphysdk/viz-engine';
+import type { AnnotationsInput, Data, RichTextContent, SpecInput } from '@graphysdk/viz-engine';
 
 import type { GraphyChartComponentProps } from './props-schema';
+
+type AuthoredAnnotations = NonNullable<GraphyChartComponentProps['spec']['annotations']>;
+
+const TEXT_ANNOTATION_DEFAULT_WIDTH = 0.25;
 
 /**
  * Pairs an embedded chart's authored spec with the dataset the engine reads it against.
  *
- * The spec is handed over whole — an authored spec is a `SpecInput`, so there is nothing to
- * translate. What is left is the two things a spec does not carry: the columns, which are the rows'
- * own keys, and the arrays the compiler indexes without checking.
+ * The spec is handed over nearly whole — an authored spec is a `SpecInput`, so there is almost
+ * nothing to translate. The exceptions: the columns, which are the rows' own keys; the arrays the
+ * compiler indexes without checking; the stylesheet's pipe tag; and a text annotation's plain
+ * `text`, which becomes the rich-text content the engine reads.
  *
  * React-free, so the same props rasterise server-side as they do in a page. The props are read
  * defensively: a host resolves prop expressions and hands the result over without validating against
@@ -15,9 +20,10 @@ import type { GraphyChartComponentProps } from './props-schema';
  */
 export function resolveEmbeddedChartInput(props: GraphyChartComponentProps): { input: SpecInput; data: Data } {
   const authored = props as Partial<GraphyChartComponentProps>;
+  const { annotations, ...authoredSpec } = authored.spec ?? {};
   // The one cast: an authored node is the engine's node with its names read off the catalog, which
   // registration widens to `string`. Nothing about its shape changes on the way through.
-  const spec = (authored.spec ?? {}) as Partial<SpecInput>;
+  const spec = authoredSpec as Partial<SpecInput>;
   const rows = readRows(authored.rows);
 
   return {
@@ -32,9 +38,27 @@ export function resolveEmbeddedChartInput(props: GraphyChartComponentProps): { i
       // An authored stylesheet arrives without the pipe tag the builders stamp; add it so the
       // sheet composes with a baked style the same as a built one.
       ...(spec.styles === undefined ? {} : { styles: { ...spec.styles, type: 'styles' as const } }),
+      ...(annotations === undefined ? {} : { annotations: resolveAnnotations(annotations) }),
     },
     data: { columns: collectColumns(rows), rows },
   };
+}
+
+/** A note's plain `text` becomes the rich-text content the engine reads; the width defaults. */
+function resolveAnnotations(annotations: AuthoredAnnotations): AnnotationsInput {
+  const notes = annotations.textAnnotations;
+  if (notes === undefined) return {};
+  return {
+    textAnnotations: notes.map((note) => ({
+      content: createTextContent(note.text),
+      at: note.at,
+      width: note.width ?? TEXT_ANNOTATION_DEFAULT_WIDTH,
+    })),
+  };
+}
+
+function createTextContent(text: string): RichTextContent {
+  return { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] };
 }
 
 /**
