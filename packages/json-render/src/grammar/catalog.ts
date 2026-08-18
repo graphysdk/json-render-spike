@@ -101,7 +101,7 @@ export const standardCoordDefinitions: Record<string, CatalogDefinition> = {
       innerRadius: z.number().nullable(),
     }),
     description:
-      'Maps position to angle and radius. A `bar` layer under polar coords is a pie chart; set `innerRadius` between 0 and 1 for a donut.',
+      'Maps position to angle and radius. With `theta: "y"` a `bar` layer is a pie chart — set `innerRadius` between 0 and 1 for a donut, or stack bars over `innerRadius` for a racetrack. With `theta: "x"` bars fan into a rose (coxcomb) and `line`/`area` layers trace a radar.',
   },
 };
 

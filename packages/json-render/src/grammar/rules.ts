@@ -14,6 +14,8 @@ export const CHART_GRAMMAR_RULES = [
   'Grouped bars are geom "bar" with position "dodge"; stacked bars are position "stack"; 100% stacked is position "fill"',
   'Horizontal bars are coord "flip" — keep the category on x and flip, never swap the x and y mappings',
   'A pie chart is geom "bar" under coord "polar"; a donut is the same with params.innerRadius between 0 and 1',
+  'A radar chart is geom "line" or "area" under coord "polar" with params.theta "x"; a rose (coxcomb) is geom "bar" with position "identity" and params.width 1 under the same coord',
+  'A trendline is an extra "line" layer with stat "smooth"; an average line is a "rule" layer with stat "mean"; a fixed target line is a "rule" layer fed by a "constant" transform',
   'Combine layers on one chart to build combos — e.g. a "bar" layer plus a "line" layer sharing an x mapping',
   'A measure on its own axis is a layer with yScaleType "secondary", a layer-local `mapping` naming its column, and a scale for scaledAesthetic "ySecondary"',
   'A geom\'s and a coord\'s own settings go under `params`, a transform\'s under `options` — a sort is {"type":"transform","transformType":"sort","options":{"variableName":"revenue","direction":"desc"}}',
