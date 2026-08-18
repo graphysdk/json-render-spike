@@ -134,22 +134,20 @@ describe('resolveEmbeddedChartInput', () => {
     expect(highlights[0]).toMatchObject({ scope: 'series', id: expect.any(String) as string });
   });
 
-  it('turns a note into the rich-text content the engine reads, and compiles it', () => {
+  it('turns a comment into the rich-text content the engine reads, and compiles it', () => {
     const base = createLineChartProps();
     const props: GraphyChartComponentProps = {
       ...base,
       spec: {
         ...base.spec,
-        annotations: {
-          textAnnotations: [{ text: 'Holiday spike', at: { anchorType: 'observation', anchorValue: 'Feb' } }],
-        },
+        annotations: { comments: [{ text: 'Holiday spike', at: { anchorValue: 'Feb', groupValue: 'EMEA' } }] },
       },
     };
 
     const { input, data } = resolveEmbeddedChartInput(props);
 
-    expect(input.annotations?.textAnnotations?.[0]).toMatchObject({
-      width: 0.25,
+    expect(input.annotations?.comments?.[0]).toMatchObject({
+      at: { anchorValue: 'Feb', groupValue: 'EMEA' },
       content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Holiday spike' }] }] },
     });
     const result = createCompiler().compile({ input, data });

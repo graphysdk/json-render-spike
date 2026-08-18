@@ -4,15 +4,13 @@ import type { GraphyChartComponentProps } from './props-schema';
 
 type AuthoredAnnotations = NonNullable<GraphyChartComponentProps['spec']['annotations']>;
 
-const TEXT_ANNOTATION_DEFAULT_WIDTH = 0.25;
-
 /**
  * Pairs an embedded chart's authored spec with the dataset the engine reads it against.
  *
  * The spec is handed over nearly whole — an authored spec is a `SpecInput`, so there is almost
  * nothing to translate. The exceptions: the columns, which are the rows' own keys; the arrays the
- * compiler indexes without checking; the stylesheet's pipe tag; and a text annotation's plain
- * `text`, which becomes the rich-text content the engine reads.
+ * compiler indexes without checking; the stylesheet's pipe tag; and a comment's plain `text`,
+ * which becomes the rich-text content the engine reads.
  *
  * React-free, so the same props rasterise server-side as they do in a page. The props are read
  * defensively: a host resolves prop expressions and hands the result over without validating against
@@ -46,16 +44,12 @@ export function resolveEmbeddedChartInput(props: GraphyChartComponentProps): { i
   };
 }
 
-/** A note's plain `text` becomes the rich-text content the engine reads; the width defaults. */
+/** A comment's plain `text` becomes the rich-text content the engine reads. */
 function resolveAnnotations(annotations: AuthoredAnnotations): AnnotationsInput {
-  const notes = annotations.textAnnotations;
+  const notes = annotations.comments;
   if (notes === undefined) return {};
   return {
-    textAnnotations: notes.map((note) => ({
-      content: createTextContent(note.text),
-      at: note.at,
-      width: note.width ?? TEXT_ANNOTATION_DEFAULT_WIDTH,
-    })),
+    comments: notes.map((note) => ({ at: note.at, content: createTextContent(note.text) })),
   };
 }
 
