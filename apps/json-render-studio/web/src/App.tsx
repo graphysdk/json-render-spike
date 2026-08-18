@@ -59,7 +59,9 @@ export const App = (): ReactElement => {
     }
   };
 
-  const issues = generation.spec === null ? [] : findPageIssues(generation.spec);
+  // A half-streamed spec fails validation by definition — dangling children, empty elements the model
+  // has not reached yet — so issues only mean something once the stream settles.
+  const issues = generation.spec === null || streaming ? [] : findPageIssues(generation.spec);
 
   return (
     <div className="studio-shell">
