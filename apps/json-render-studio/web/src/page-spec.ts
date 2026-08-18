@@ -9,13 +9,13 @@ export interface StudioIssue {
 
 const EMPTY_TREE: Spec = { root: '', elements: {} };
 
-/** Prompts that reach for a different corner of the catalog, offered while the canvas is empty. */
+/** Prompts that each reach for a different corner of the chart grammar, offered while the canvas is empty. */
 export const EXAMPLE_PROMPTS = [
-  'A pricing page for a developer tool with three tiers, a feature comparison table, and a FAQ accordion',
   'An analytics dashboard for a bike-share service: KPI cards for rides and revenue, a line chart of daily rides, and a table of the busiest stations',
   'Compare rainfall and temperature across 12 months for three cities — bars for rainfall and a line for temperature on a secondary axis',
-  'A quarterly revenue review for a SaaS company: a trend line by month, a donut of revenue by plan, and a stacked bar of new versus churned accounts by region',
-  'A signup form with email, password and a plan select, validating on blur, and a summary card that updates as the form is filled',
+  'A radar chart comparing two smartphone models across six attributes — battery, camera, display, performance, storage, value',
+  'A quarterly revenue review in the Braun style: a revenue trend by month, a donut of revenue by plan, and a stacked bar of new versus churned accounts',
+  'A rose chart of monthly ad demand around a twelve-month clock, with the holiday quarter called out in its own color',
 ];
 
 /**

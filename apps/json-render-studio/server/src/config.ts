@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 /** Default model for authoring specs. Overridable so the catalog can be tried against a cheaper one. */
-const DEFAULT_MODEL = 'claude-sonnet-5';
+const DEFAULT_MODEL = 'claude-opus-5';
 const DEFAULT_PORT = 4320;
 
 /**
