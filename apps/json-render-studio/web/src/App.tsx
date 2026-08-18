@@ -2,6 +2,8 @@ import { type FormEvent, type ReactElement, useEffect, useMemo, useRef, useState
 
 import { CHART_STYLE_NAMES, type ChartStyleName, readChartStyleName } from '@graphysdk/json-render';
 
+import { STUDIO_MODELS, type StudioModelId } from '../../shared/studio-models';
+
 import { fetchStatus, fetchSystemPrompt, type StudioStatus } from './api';
 import { findChartIssues } from './chart-issues';
 import { CodePanel } from './CodePanel';
@@ -36,6 +38,7 @@ export const App = (): ReactElement => {
   const [surface, setSurface] = useState<Surface>('preview');
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
   const [chartStyle, setChartStyle] = useState<ChartStyleName | undefined>(undefined);
+  const [model, setModel] = useState<StudioModelId>('claude-opus-5');
 
   const generation = useGeneration();
   const streaming = generation.status === 'streaming';
@@ -57,7 +60,7 @@ export const App = (): ReactElement => {
     event.preventDefault();
     if (prompt.trim() !== '' && !streaming) {
       hasAutoRepairedRef.current = false;
-      void generation.generate(prompt);
+      void generation.generate(prompt, model);
     }
   };
 
@@ -89,8 +92,8 @@ export const App = (): ReactElement => {
     }
     hasAutoRepairedRef.current = true;
     setIsAutoRepairing(true);
-    void generation.generate(buildRepairPrompt(chartErrors));
-  }, [generation, issues, isAutoRepairing]);
+    void generation.generate(buildRepairPrompt(chartErrors), model);
+  }, [generation, issues, isAutoRepairing, model]);
 
   return (
     <div className="studio-shell">
@@ -138,6 +141,21 @@ export const App = (): ReactElement => {
             {generation.error ??
               (isAutoRepairing ? `Repairing charts — ${describeProgress(generation)}` : describeProgress(generation))}
           </p>
+
+          <label className="studio-style-picker">
+            <span className="studio-section-title">Model</span>
+            <select
+              className="studio-style-select"
+              value={model}
+              onChange={(event) => setModel(event.target.value as StudioModelId)}
+            >
+              {STUDIO_MODELS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label className="studio-style-picker">
             <span className="studio-section-title">Chart style</span>

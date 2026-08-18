@@ -3,6 +3,8 @@ import { streamText } from 'ai';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
+import { STUDIO_MODEL_IDS } from '../../shared/studio-models.js';
+
 import { buildStudioUserPrompt } from './build-user-prompt.js';
 import { streamViaClaudeSubscription } from './claude-subscription.js';
 import type { StudioConfig } from './config.js';
@@ -14,6 +16,8 @@ const generateRequestSchema = z.object({
   prompt: z.string().min(1),
   /** Present on a refinement; the model is then asked for patches against it rather than a new spec. */
   currentSpec: z.record(z.string(), z.unknown()).nullable().optional(),
+  /** The model the client picked; the server's configured default when absent. */
+  model: z.enum(STUDIO_MODEL_IDS).optional(),
 });
 
 export function createApp(config: StudioConfig): Hono {
@@ -32,12 +36,13 @@ export function createApp(config: StudioConfig): Hono {
     }
 
     const prompt = buildStudioUserPrompt(parsed.data.prompt, parsed.data.currentSpec ?? null);
+    const model = parsed.data.model ?? config.model;
 
     if (config.credentials === 'claude-subscription') {
       try {
         return await respondWithText(
           streamViaClaudeSubscription({
-            model: config.model,
+            model,
             system: SYSTEM_PROMPT,
             prompt,
             maxOutputTokens: MAX_OUTPUT_TOKENS,
@@ -50,7 +55,7 @@ export function createApp(config: StudioConfig): Hono {
 
     const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const result = streamText({
-      model: anthropic(config.model),
+      model: anthropic(model),
       system: SYSTEM_PROMPT,
       prompt,
       maxOutputTokens: MAX_OUTPUT_TOKENS,

@@ -27,7 +27,7 @@ export interface GenerationState {
 }
 
 export interface GenerationControls extends GenerationState {
-  generate: (prompt: string) => Promise<void>;
+  generate: (prompt: string, model: string) => Promise<void>;
   stop: () => void;
   reset: () => void;
 }
@@ -68,7 +68,7 @@ export function useGeneration(): GenerationControls {
   }, [stop]);
 
   const generate = useCallback(
-    async (prompt: string) => {
+    async (prompt: string, model: string) => {
       stop();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -94,6 +94,7 @@ export function useGeneration(): GenerationControls {
         const body = await openGenerationStream({
           prompt,
           currentSpec: previousSpec,
+          model,
           signal: controller.signal,
         });
 

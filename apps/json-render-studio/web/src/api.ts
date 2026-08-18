@@ -23,6 +23,7 @@ export async function fetchSystemPrompt(): Promise<string> {
 export interface GenerateRequest {
   prompt: string;
   currentSpec: Record<string, unknown> | null;
+  model: string;
   signal: AbortSignal;
 }
 
