@@ -150,45 +150,44 @@ export const App = (): ReactElement => {
                   Clear
                 </button>
               )}
+              <div className="studio-actions-end">
+                <label className="studio-inline-picker">
+                  <span className="studio-inline-label">Model</span>
+                  <select
+                    className="studio-select studio-select--ghost"
+                    value={model}
+                    onChange={(event) => setModel(event.target.value as StudioModelId)}
+                  >
+                    {STUDIO_MODELS.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="studio-inline-picker">
+                  <span className="studio-inline-label">Style</span>
+                  <select
+                    className="studio-select studio-select--ghost"
+                    value={chartStyle ?? ''}
+                    onChange={(event) => setChartStyle(readChartStyleName(event.target.value))}
+                  >
+                    <option value="">Auto</option>
+                    {CHART_STYLE_NAMES.map((name) => (
+                      <option key={name} value={name}>
+                        {formatStyleLabel(name)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </div>
-            <p className={generation.error === null ? 'studio-status' : 'studio-status studio-status--error'}>
-              {generation.error ??
-                (isAutoRepairing ? `Repairing charts — ${describeProgress(generation)}` : describeProgress(generation))}
-            </p>
+            {(generation.error !== null || isAutoRepairing) && (
+              <p className={generation.error === null ? 'studio-status' : 'studio-status studio-status--error'}>
+                {generation.error ?? 'Repairing charts…'}
+              </p>
+            )}
           </form>
-
-          <div className="studio-pickers">
-            <label className="studio-picker">
-              <span className="studio-section-title">Model</span>
-              <select
-                className="studio-select"
-                value={model}
-                onChange={(event) => setModel(event.target.value as StudioModelId)}
-              >
-                {STUDIO_MODELS.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="studio-picker">
-              <span className="studio-section-title">Chart style</span>
-              <select
-                className="studio-select"
-                value={chartStyle ?? ''}
-                onChange={(event) => setChartStyle(readChartStyleName(event.target.value))}
-              >
-                <option value="">Auto</option>
-                {CHART_STYLE_NAMES.map((name) => (
-                  <option key={name} value={name}>
-                    {formatStyleLabel(name)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
 
           {!hasSpec && !streaming && (
             <section className="studio-section">
@@ -277,19 +276,4 @@ function readPanel(panel: InspectorPanel, generation: GenerationControls, system
     return generation.rawStream === '' ? 'Nothing streamed yet.' : generation.rawStream;
   }
   return generation.spec === null ? 'No spec yet.' : JSON.stringify(generation.spec, null, 2);
-}
-
-function describeProgress(generation: GenerationControls): string {
-  const { status, patchCount, droppedLines } = generation;
-  // A dropped line is a patch the model emitted and the compiler could not parse. Saying so beats
-  // leaving the reader to work out why the page has a hole in it.
-  const dropped = droppedLines > 0 ? ` — ${droppedLines} unparseable lines dropped` : '';
-
-  if (status === 'streaming') {
-    return `Streaming… ${patchCount} patches applied${dropped}`;
-  }
-  if (status === 'done') {
-    return `Done — ${patchCount} patches applied${dropped}`;
-  }
-  return 'Idle';
 }

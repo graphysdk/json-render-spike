@@ -162,7 +162,28 @@
 
 .studio-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.studio-actions-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.studio-inline-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+}
+
+.studio-inline-picker .studio-select--ghost {
+  margin-top: -2px;
 }
 
 .studio-button {
@@ -215,19 +236,6 @@
 
 /* ─── Pickers ──────────────────────────────────────────────────────────────── */
 
-.studio-pickers {
-  display: flex;
-  gap: 10px;
-}
-
-.studio-picker {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
 .studio-select {
   width: 100%;
   padding: 6px 10px;
@@ -247,6 +255,35 @@
 .studio-select:focus {
   border-color: #999;
   outline: none;
+}
+
+.studio-inline-label {
+  padding-left: 6px;
+  font-size: 10.5px;
+  color: #999;
+}
+
+/* Quiet ghost pickers riding in the actions row: Generate stays the only heavy element. */
+.studio-select--ghost {
+  width: auto;
+  max-width: 110px;
+  padding: 4px 4px 4px 6px;
+  border-color: transparent;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #171717;
+}
+
+.studio-select--ghost:hover {
+  border-color: transparent;
+  background: #f2f2f2;
+}
+
+.studio-select--ghost:focus {
+  border-color: #eaeaea;
+  background: #fff;
 }
 
 /* ─── Examples ─────────────────────────────────────────────────────────────── */
