@@ -80,6 +80,7 @@ const braunPolarStyles = styles({
 export const braunChartStyle: ChartStyle = {
   description: 'Dieter Rams: warm-grey plates, ink linework, rounded pill bars, Archivo type',
   themeOverrides,
+  panelBackground: BRAUN_COLORS.panel,
   seriesColors: [BRAUN_COLORS.ink, BRAUN_COLORS.trace2, ...BRAUN_RAMP],
   fontsUrl: 'https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap',
   apply: (input) =>

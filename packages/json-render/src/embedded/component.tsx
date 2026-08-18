@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import { GraphProvider, GraphRenderer } from '@graphysdk/react';
 import type { ColorScheme, CustomPalettesInput, Locale, Plugin } from '@graphysdk/viz-engine';
 
-import { applyChartStyle, type ChartStyleName, readChartStyleName } from '../styles/chart-styles';
+import { applyChartStyle, type ChartStyleName, chartStyles, readChartStyleName } from '../styles/chart-styles';
 
 import type { GraphyChartComponentProps } from './props-schema';
 import { resolveEmbeddedChartInput } from './resolve-input';
@@ -16,9 +16,18 @@ export interface GraphyChartComponentRenderProps {
   customPalettes?: CustomPalettesInput;
   /** Host-chosen style override. When set it wins over a `style` authored on the props. */
   chartStyle?: ChartStyleName;
+  /** The host's streaming flag. While true the chart holds a placeholder instead of compiling half-built props. */
+  // eslint-disable-next-line react/boolean-prop-naming -- mirrors the host registry's ComponentContext field, which a wrapper spreads through verbatim
+  loading?: boolean;
 }
 
 const DEFAULT_HEIGHT = 320;
+
+const PLACEHOLDER_BARS = [
+  { x: 2, height: 14, delay: '0s' },
+  { x: 18, height: 22, delay: '0.25s' },
+  { x: 34, height: 28, delay: '0.5s' },
+];
 
 /**
  * `GraphyChart` for an element-tree registry.
@@ -34,13 +43,31 @@ export const GraphyChartComponent = ({
   formattingLocale,
   customPalettes,
   chartStyle,
+  loading,
 }: GraphyChartComponentRenderProps): ReactElement => {
-  const { input, data } = resolveEmbeddedChartInput(props);
   const styleName = chartStyle ?? readChartStyleName(props.style);
+  const box = { height: props.height ?? DEFAULT_HEIGHT, width: '100%' };
+
+  // While the host is still streaming, the props are half-built by definition — mounting the
+  // provider would compile them and paint the failures. Hold an intentional placeholder instead,
+  // already wearing the style's plate color when one is known.
+  if (loading === true) {
+    const activeStyle = styleName === undefined ? undefined : chartStyles[styleName];
+    return (
+      <div style={box}>
+        <ChartPlaceholder
+          background={activeStyle?.panelBackground}
+          glyphColor={activeStyle?.themeOverrides.textSecondary}
+        />
+      </div>
+    );
+  }
+
+  const { input, data } = resolveEmbeddedChartInput(props);
   const styled = styleName === undefined ? undefined : applyChartStyle(input, styleName);
 
   return (
-    <div style={{ height: props.height ?? DEFAULT_HEIGHT, width: '100%' }}>
+    <div style={box}>
       <GraphProvider
         input={styled?.input ?? input}
         data={data}
@@ -55,3 +82,41 @@ export const GraphyChartComponent = ({
     </div>
   );
 };
+
+/** Pulsing bar glyph filling the chart's box while a host streams the props in. */
+const ChartPlaceholder = ({ background, glyphColor }: { background?: string; glyphColor?: string }): ReactElement => (
+  <div
+    data-testid="graphy-chart-placeholder"
+    style={{
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 8,
+      background: background ?? 'rgba(0, 0, 0, 0.04)',
+    }}
+  >
+    <svg width="44" height="32" viewBox="0 0 44 32" aria-hidden="true">
+      {PLACEHOLDER_BARS.map((bar) => (
+        <rect
+          key={bar.x}
+          x={bar.x}
+          y={32 - bar.height}
+          width="8"
+          rx="2"
+          height={bar.height}
+          fill={glyphColor ?? 'rgba(0, 0, 0, 0.25)'}
+        >
+          <animate
+            attributeName="opacity"
+            values="0.35;0.9;0.35"
+            dur="1.5s"
+            begin={bar.delay}
+            repeatCount="indefinite"
+          />
+        </rect>
+      ))}
+    </svg>
+  </div>
+);

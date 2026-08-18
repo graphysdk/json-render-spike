@@ -17,6 +17,8 @@ export interface ChartStyle {
   seriesColors: readonly string[];
   /** Stylesheet URL for the style's typefaces, for the host page to load. */
   fontsUrl?: string;
+  /** The plate color behind a chart, for placeholders and loading boxes to paint in the style. */
+  panelBackground?: string;
   /** Folds the style's config and stylesheets onto an authored spec. */
   apply: (input: SpecInput) => SpecInput;
 }
