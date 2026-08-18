@@ -11,11 +11,12 @@ const EMPTY_TREE: Spec = { root: '', elements: {} };
 
 /** Prompts that each reach for a different corner of the chart grammar, offered while the canvas is empty. */
 export const EXAMPLE_PROMPTS = [
-  'An analytics dashboard for a bike-share service: KPI cards for rides and revenue, a line chart of daily rides, and a table of the busiest stations',
-  'Compare rainfall and temperature across 12 months for three cities — bars for rainfall and a line for temperature on a secondary axis',
-  'A radar chart comparing two smartphone models across six attributes — battery, camera, display, performance, storage, value',
-  'A quarterly revenue review in the Braun style: a revenue trend by month, a donut of revenue by plan, and a stacked bar of new versus churned accounts',
-  'A rose chart of monthly ad demand around a twelve-month clock, with the holiday quarter called out in its own color',
+  'A bike-share dashboard: KPI cards, a line of daily rides, and a table of the busiest stations',
+  'Rainfall as bars and temperature as a line on a secondary axis, monthly for three cities',
+  'A radar chart comparing two phones across six specs, the winner in red',
+  'A quarterly revenue review in the Braun style: monthly trend, donut by plan, stacked new vs churned',
+  'Monthly signups with the December spike highlighted and a comment explaining it',
+  'Revenue by month in €, with a total headline and its change versus last month',
 ];
 
 /**
