@@ -198,7 +198,10 @@ export const App = (): ReactElement => {
 };
 
 function formatStyleLabel(name: string): string {
-  return name.charAt(0).toUpperCase() + name.slice(1);
+  return name
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 function describeStatus(status: StudioStatus): string {
