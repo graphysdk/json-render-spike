@@ -28,6 +28,24 @@ describe('graphyChartPropsSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('accepts authored axes config, which is how a model labels an axis or drops a grid', () => {
+    const props = createLineChartProps();
+    const withAxes = {
+      ...props,
+      spec: {
+        ...props.spec,
+        config: {
+          axes: { y: { label: 'Revenue, €', grid: { isVisible: false } }, x: { ticks: { isVisible: false } } },
+        },
+      },
+    };
+
+    const result = graphyChartPropsSchema.safeParse(withAxes);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.spec.config?.axes?.y?.label).toBe('Revenue, €');
+  });
+
   it('keeps a scale option that sits flat on the node, which is where the engine reads it', () => {
     const props = createLineChartProps();
     const scaled = {

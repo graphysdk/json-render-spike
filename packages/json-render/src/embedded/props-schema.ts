@@ -36,6 +36,16 @@ const catalogParams = z.record(z.string(), z.unknown());
 const aestheticValue = z.union([z.string(), z.object({ value: z.union([z.string(), z.number(), z.null()]) })]);
 const mappingSchema = z.record(z.string(), aestheticValue);
 
+const axisGuideSchema = z.object({ isVisible: z.boolean() });
+/** One axis's authored settings; anything left unset keeps the engine default. */
+const axisSchema = z.object({
+  /** Axis title. Name units the tick labels alone don't carry. */
+  label: z.string().optional(),
+  isVisible: z.boolean().optional(),
+  grid: axisGuideSchema.optional(),
+  ticks: axisGuideSchema.optional(),
+});
+
 /** The slice of the engine's chart config a page-embedded chart is authored with. */
 const configSchema = z.object({
   content: z
@@ -46,6 +56,13 @@ const configSchema = z.object({
     })
     .optional(),
   legend: z.object({ position: z.enum(LEGEND_POSITIONS) }).optional(),
+  axes: z
+    .object({
+      x: axisSchema.optional(),
+      y: axisSchema.optional(),
+      ySecondary: axisSchema.optional(),
+    })
+    .optional(),
 });
 
 /**

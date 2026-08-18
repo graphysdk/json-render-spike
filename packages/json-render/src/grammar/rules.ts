@@ -7,7 +7,7 @@
 export const CHART_GRAMMAR_RULES = [
   'There is no chart-type field. A chart is `rows` — the data, inline — and `spec`: a mapping plus one or more geom layers, read through a coordinate system',
   'Every node inside `spec` carries its own `type` tag: {"type":"layer","geom":…}, {"type":"scale","scaledAesthetic":…}, {"type":"transform","transformType":…}, {"type":"coord","coordType":…}',
-  'The chart\'s text and legend live in `spec.config` — {"content":{"title":…,"subtitle":…,"caption":…},"legend":{"position":"top"}}',
+  'The chart\'s text, legend and axes live in `spec.config` — {"content":{"title":…,"subtitle":…,"caption":…},"legend":{"position":"top"},"axes":{"y":{"label":"Revenue, €","grid":{"isVisible":false}}}}. An axis `label` names units the tick labels alone don\'t carry',
   'Every chart MUST declare a scale for each mapped position aesthetic (x, y, ySecondary). Position scales are never created for you and a missing one renders nothing',
   'Use scaleType "inferred" for x/y when the column type is obvious; reach for "continuous"/"discrete"/"datetime" only to set domains, transforms or ordering',
   'Map a categorical `color` and give it scaleType "palette" — that is what draws series colors from the shared palette',
