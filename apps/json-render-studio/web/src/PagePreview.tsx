@@ -13,6 +13,12 @@ import { componentCatalog } from '../../shared/component-catalog';
 
 import { asElementTree } from './page-spec';
 
+// Under Auto the style arrives on the generated props, so which typeface a page needs is unknowable
+// up front — load every registered style's stylesheet once; there are few and they are cheap.
+const STYLE_FONT_URLS = [
+  ...new Set(Object.values(chartStyles).flatMap((registeredStyle) => registeredStyle.fontsUrl ?? [])),
+];
+
 /**
  * A generated page owns state: an Input writes to it, a Table reads its rows back out of it.
  * `JSONUIProvider` supplies that store and the visibility, action and validation contexts every
@@ -51,11 +57,11 @@ export const PagePreview = ({
     [chartStyle]
   );
 
-  const fontsUrl = chartStyle === undefined ? undefined : chartStyles[chartStyle].fontsUrl;
-
   return (
     <>
-      {fontsUrl !== undefined && <link rel="stylesheet" precedence="default" href={fontsUrl} />}
+      {STYLE_FONT_URLS.map((fontsUrl) => (
+        <link key={fontsUrl} rel="stylesheet" precedence="default" href={fontsUrl} />
+      ))}
       <JSONUIProvider
         key={`${tree.root}:${isStreaming ? 'streaming' : 'settled'}`}
         registry={registry}
