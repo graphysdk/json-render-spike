@@ -63,6 +63,24 @@ const configSchema = z.object({
       ySecondary: axisSchema.optional(),
     })
     .optional(),
+  /** How numbers print — on axes, data labels, tooltips and the headline alike. */
+  numberFormat: z
+    .object({
+      decimals: z.union([z.number(), z.literal('auto')]).optional(),
+      abbreviation: z.enum(['auto', 'k', 'm', 'b', 'none']).optional(),
+      prefix: z.string().optional(),
+      suffix: z.string().optional(),
+    })
+    .optional(),
+  /** A KPI number over the chart, with an optional trend against a reference point. */
+  headline: z
+    .object({
+      show: z.enum(['total', 'average', 'current', 'none']).optional(),
+      compareWith: z.enum(['previous', 'first', 'none']).optional(),
+      /** `center` sits the number in a donut's hole; only valid there. */
+      position: z.enum(['above', 'center']).optional(),
+    })
+    .optional(),
 });
 
 /**

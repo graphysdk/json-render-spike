@@ -46,6 +46,26 @@ describe('graphyChartPropsSchema', () => {
     expect(result.data?.spec.config?.axes?.y?.label).toBe('Revenue, €');
   });
 
+  it('accepts number formatting and a headline, which is how a chart prints money and KPIs', () => {
+    const props = createLineChartProps();
+    const withFormat = {
+      ...props,
+      spec: {
+        ...props.spec,
+        config: {
+          numberFormat: { prefix: '$', decimals: 1, abbreviation: 'auto' },
+          headline: { show: 'total', compareWith: 'previous' },
+        },
+      },
+    };
+
+    const result = graphyChartPropsSchema.safeParse(withFormat);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.spec.config?.numberFormat?.prefix).toBe('$');
+    expect(result.data?.spec.config?.headline?.show).toBe('total');
+  });
+
   it('keeps a scale option that sits flat on the node, which is where the engine reads it', () => {
     const props = createLineChartProps();
     const scaled = {

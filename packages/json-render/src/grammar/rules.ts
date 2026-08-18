@@ -21,6 +21,8 @@ export const CHART_GRAMMAR_RULES = [
   'A geom\'s and a coord\'s own settings go under `params`, a transform\'s under `options` — a sort is {"type":"transform","transformType":"sort","options":{"variableName":"revenue","direction":"desc"}}',
   'A scale\'s options are the exception: they sit FLAT on the scale node, never nested — {"type":"scale","scaledAesthetic":"y","scaleType":"continuous","zero":true,"nice":true}',
   'When the data has one column per series, add a "reshape" transform, then map `color` to its keyName and `y` to its valueName',
+  'Money and percentages come from `config.numberFormat` — {"prefix":"$","decimals":1,"abbreviation":"auto"} or {"suffix":"%"} — never baked into the rows',
+  'A KPI or summary number over the chart is `config.headline` — {"show":"total","compareWith":"previous"}; position "center" sits it in a donut\'s hole',
   'Row values must be JSON — write dates as ISO strings like "2024-01-31", never as Date objects',
 ] as const;
 
