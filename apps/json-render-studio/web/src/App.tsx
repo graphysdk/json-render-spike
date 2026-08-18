@@ -1,8 +1,9 @@
-import { type FormEvent, type ReactElement, useEffect, useState } from 'react';
+import { type FormEvent, type ReactElement, useEffect, useMemo, useState } from 'react';
 
 import { CHART_STYLE_NAMES, type ChartStyleName, readChartStyleName } from '@graphysdk/json-render';
 
 import { fetchStatus, fetchSystemPrompt, type StudioStatus } from './api';
+import { findChartIssues } from './chart-issues';
 import { CodePanel } from './CodePanel';
 import { EXAMPLE_PROMPTS, findPageIssues, isPageEmpty } from './page-spec';
 import { PagePreview } from './PagePreview';
@@ -60,8 +61,15 @@ export const App = (): ReactElement => {
   };
 
   // A half-streamed spec fails validation by definition — dangling children, empty elements the model
-  // has not reached yet — so issues only mean something once the stream settles.
-  const issues = generation.spec === null || streaming ? [] : findPageIssues(generation.spec);
+  // has not reached yet — so issues only mean something once the stream settles. Charts additionally
+  // get a headless compile, so a spec the renderer would reject is named in the sidebar too.
+  const issues = useMemo(
+    () =>
+      generation.spec === null || streaming
+        ? []
+        : [...findPageIssues(generation.spec), ...findChartIssues(generation.spec)],
+    [generation.spec, streaming]
+  );
 
   return (
     <div className="studio-shell">
