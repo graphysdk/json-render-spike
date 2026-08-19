@@ -9,7 +9,7 @@ import {
   type GraphyChartComponentRenderProps,
 } from '@graphysdk/json-render';
 
-import { componentCatalog } from '../../shared/component-catalog';
+import { componentCatalog } from '../shared/component-catalog';
 
 import { asElementTree } from './page-spec';
 
@@ -59,7 +59,6 @@ export const PagePreview = ({
     }
     for (const key of Object.keys(fingerprints)) {
       if (!(key in streamedState)) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- the fingerprint cache mirrors the streamed state's own keys
         delete fingerprints[key];
         updates[`/${key}`] = undefined;
       }

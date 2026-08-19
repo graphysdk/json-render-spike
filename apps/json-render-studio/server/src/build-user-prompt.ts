@@ -1,4 +1,4 @@
-import { ORDERING_REMINDER } from './system-prompt.js';
+import { ORDERING_REMINDER } from './system-prompt';
 
 const MAX_PROMPT_LENGTH = 4000;
 

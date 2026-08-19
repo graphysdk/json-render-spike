@@ -1,5 +1,3 @@
-/* eslint-disable no-template-curly-in-string --
-   `${...}` appears here as the source these tests assert on, not as an interpolation they meant. */
 import type { Spec } from '@json-render/core';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';

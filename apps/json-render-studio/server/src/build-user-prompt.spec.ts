@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildStudioUserPrompt } from './build-user-prompt.js';
+import { buildStudioUserPrompt } from './build-user-prompt';
 
 describe('buildStudioUserPrompt', () => {
   it('appends the patch-ordering reminder on a fresh generation', () => {

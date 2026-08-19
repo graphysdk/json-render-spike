@@ -2,7 +2,7 @@ import { type FormEvent, type ReactElement, useEffect, useMemo, useRef, useState
 
 import { CHART_STYLE_NAMES, type ChartStyleName, readChartStyleName } from '@graphysdk/json-render';
 
-import { STUDIO_MODELS, type StudioModelId } from '../../shared/studio-models';
+import { STUDIO_MODELS, type StudioModelId } from '../shared/studio-models';
 
 import { fetchSystemPrompt } from './api';
 import { findChartIssues } from './chart-issues';

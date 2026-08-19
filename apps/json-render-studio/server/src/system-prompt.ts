@@ -1,4 +1,4 @@
-import { componentCatalog } from '../../shared/component-catalog.js';
+import { componentCatalog } from '../../shared/component-catalog';
 
 /**
  * What the catalog produced.

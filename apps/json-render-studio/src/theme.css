@@ -2,7 +2,7 @@
 
 /* shadcn's components ship compiled to JS, so Tailwind has to be pointed at them to emit the
    utilities they reference. Without this the preview renders unstyled. */
-@source '../../node_modules/@json-render/shadcn/dist';
+@source '../node_modules/@json-render/shadcn/dist';
 
 @theme inline {
   --color-background: var(--background);

@@ -5,19 +5,19 @@ A codegen playground for [json-render](https://github.com/vercel-labs/json-rende
 Not a chart tool. The studio generates **whatever a json-render schema can describe** — today a React page, tomorrow whatever renderer is added next. Graphy charts are one component in the page catalog, alongside shadcn's.
 
 ```bash
-cp .env.example .env   # ANTHROPIC_API_KEY, or inherit apps/agents-api/.env
-pnpm dev               # API on :4320, web on :5190
+cp .env.example .env   # ANTHROPIC_API_KEY (optional)
+pnpm dev               # Next.js on :5190
 ```
 
 With no `ANTHROPIC_API_KEY` set, generation runs through your Claude subscription instead: the
-server drives your local Claude Code with the same system prompt, no tools and a single turn, and
+API route drives your local Claude Code with the same system prompt, no tools and a single turn, and
 streams the text back unchanged. The header says which of the two a generation will use.
 
 ## What it generates
 
 A React page: `@json-render/react`'s element-tree schema, filled with shadcn's 36 components plus `GraphyChart`, painted by `<JSONUIProvider>` + `<Renderer>`.
 
-The catalog is the whole configuration. `shared/component-catalog.ts` defines it once and both processes read it — the server turns it into the system prompt, the browser types the registry that paints what comes back — so they cannot drift. Nothing between the two knows what a spec means: `use-generation.ts` assembles JSONL patches into JSON, and only `page-spec.ts` and `PagePreview.tsx` narrow that JSON to an element tree.
+The catalog is the whole configuration. `shared/component-catalog.ts` defines it once and both sides read it — the API route turns it into the system prompt, the browser types the registry that paints what comes back — so they cannot drift. Nothing between the two knows what a spec means: `use-generation.ts` assembles JSONL patches into JSON, and only `page-spec.ts` and `PagePreview.tsx` narrow that JSON to an element tree.
 
 ### Charts as a component, not a document type
 
@@ -27,7 +27,7 @@ The catalog is the whole configuration. `shared/component-catalog.ts` defines it
 // shared/component-catalog.ts
 components: { ...shadcnComponentDefinitions, GraphyChart: graphyChartComponentDefinition }
 
-// web/src/PagePreview.tsx
+// src/PagePreview.tsx
 components: { ...shadcnComponents, GraphyChart: GraphyChartComponent }
 ```
 
