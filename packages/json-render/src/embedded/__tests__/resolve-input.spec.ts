@@ -192,4 +192,42 @@ describe('resolveEmbeddedChartInput', () => {
     expect(input.scales[1]).toMatchObject({ scaledAesthetic: 'y', zero: true });
     expect(input.config.legend).toEqual({ position: 'bottom' });
   });
+
+  it('turns gridlines off on a dual-axis chart, where two y scales would interleave two grids', () => {
+    const base = createLineChartProps();
+    const props: GraphyChartComponentProps = {
+      ...base,
+      spec: {
+        ...base.spec,
+        layers: [
+          { type: 'layer', geom: 'bar' },
+          { type: 'layer', geom: 'line', mapping: { y: 'margin' }, yScaleType: 'secondary' },
+        ],
+        scales: [...base.spec.scales, { type: 'scale', scaledAesthetic: 'ySecondary', scaleType: 'continuous' }],
+        // The authored config even asks for the grid — the engine mirrors y's grid onto ySecondary,
+        // so honoring it is what paints the two mismatched sets.
+        config: { axes: { y: { label: 'Revenue, €', grid: { isVisible: true } } } },
+      },
+    };
+
+    const { input } = resolveEmbeddedChartInput(props);
+
+    expect(input.config.axes?.x?.grid?.isVisible).toBe(false);
+    expect(input.config.axes?.y?.grid?.isVisible).toBe(false);
+    expect(input.config.axes?.ySecondary?.grid?.isVisible).toBe(false);
+    expect(input.config.axes?.y?.label).toBe('Revenue, €');
+  });
+
+  it('leaves grid config alone on a single-axis chart', () => {
+    const base = createLineChartProps();
+    const props: GraphyChartComponentProps = {
+      ...base,
+      spec: { ...base.spec, config: { axes: { y: { grid: { isVisible: true } } } } },
+    };
+
+    const { input } = resolveEmbeddedChartInput(props);
+
+    expect(input.config.axes?.y?.grid?.isVisible).toBe(true);
+    expect(input.config.axes?.x).toBeUndefined();
+  });
 });

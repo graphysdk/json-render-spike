@@ -34,13 +34,39 @@ export function resolveEmbeddedChartInput(props: GraphyChartComponentProps): { i
       // that patch was dropped); the compiler faults on it, so an optionless node is not there yet.
       transforms: (spec.transforms ?? []).filter((transform) => transform.options !== undefined),
       highlights: spec.highlights ?? [],
-      config: spec.config ?? {},
+      config: resolveConfig(spec),
       // An authored stylesheet arrives without the pipe tag the builders stamp; add it so the
       // sheet composes with a baked style the same as a built one.
       ...(spec.styles === undefined ? {} : { styles: { ...spec.styles, type: 'styles' as const } }),
       ...(annotations === undefined ? {} : { annotations: resolveAnnotations(annotations) }),
     },
     data: { columns: collectColumns(rows), rows },
+  };
+}
+
+/**
+ * The engine mirrors the primary y axis's grid config onto `ySecondary`, and the two scales tick
+ * independently — so one visible grid becomes two interleaved ones. A chart with a secondary
+ * y axis therefore draws no gridlines at all.
+ */
+function resolveConfig(spec: Partial<SpecInput>): NonNullable<SpecInput['config']> {
+  const config = spec.config ?? {};
+  const usesSecondaryAxis =
+    (spec.layers ?? []).some((layer) => layer.yScaleType === 'secondary') ||
+    (spec.scales ?? []).some((scale) => scale.scaledAesthetic === 'ySecondary');
+  if (!usesSecondaryAxis) {
+    return config;
+  }
+
+  const axes = config.axes ?? {};
+  return {
+    ...config,
+    axes: {
+      ...axes,
+      x: { ...axes.x, grid: { ...axes.x?.grid, isVisible: false } },
+      y: { ...axes.y, grid: { ...axes.y?.grid, isVisible: false } },
+      ySecondary: { ...axes.ySecondary, grid: { ...axes.ySecondary?.grid, isVisible: false } },
+    },
   };
 }
 

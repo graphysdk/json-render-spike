@@ -18,7 +18,7 @@ export const CHART_GRAMMAR_RULES = [
   'A radar chart is geom "line" or "area" under coord "polar" with params.theta "x"; a rose (coxcomb) is geom "bar" with position "identity" and params.width 1 under the same coord',
   'A trendline is an extra "line" layer with stat "smooth"; an average line is a "rule" layer with stat "mean"; a fixed target line is a "rule" layer fed by a "constant" transform',
   'Combine layers on one chart to build combos — e.g. a "bar" layer plus a "line" layer sharing an x mapping',
-  'A measure on its own axis is a layer with yScaleType "secondary", a layer-local `mapping` naming its column, and a scale for scaledAesthetic "ySecondary"',
+  'A measure on its own axis is a layer with yScaleType "secondary", a layer-local `mapping` naming its column, and a scale for scaledAesthetic "ySecondary". Two y scales tick independently, so a dual-axis chart draws no gridlines — never turn them on there',
   'A geom\'s and a coord\'s own settings go under `params`, a transform\'s under `options` — a sort is {"type":"transform","transformType":"sort","options":{"variableName":"revenue","direction":"desc"}}',
   'A scale\'s options are the exception: they sit FLAT on the scale node, never nested — {"type":"scale","scaledAesthetic":"y","scaleType":"continuous","zero":true,"nice":true}',
   'When the data has one column per series, add a "reshape" transform, then map `color` to its keyName and `y` to its valueName',
