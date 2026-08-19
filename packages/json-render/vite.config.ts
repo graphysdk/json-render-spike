@@ -1,5 +1,3 @@
-/* eslint-disable import-x/no-default-export */
-/* eslint-disable import-x/no-nodejs-modules */
 import path from 'node:path';
 
 import { nodeExternals } from 'rollup-plugin-node-externals';

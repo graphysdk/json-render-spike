@@ -39,38 +39,32 @@
     "build": "vite build",
     "test": "vitest run",
     "test:watch": "TZ=utc vitest",
-    "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@graphysdk/react": "workspace:*",
-    "@graphysdk/viz-engine": "workspace:*",
+    "@graphysdk/react": ">=1.8.0-0",
+    "@graphysdk/viz-engine": ">=1.8.0-0",
     "react": "^19.0.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@graphysdk/react": "workspace:*",
-    "@graphysdk/viz-engine": "workspace:*",
-    "@graphytools/eslint-config": "workspace:*",
-    "@graphytools/eslint-plugin-graphy": "workspace:*",
-    "@graphytools/typescript-config": "workspace:*",
-    "@graphytools/vitest-config": "workspace:*",
+    "@graphysdk/react": "1.8.1-beta.1787132472323",
+    "@graphysdk/viz-engine": "1.8.1-beta.1787132472323",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
-    "@types/node": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@vanilla-extract/vite-plugin": "^5.0.0",
-    "react": "catalog:",
-    "react-dom": "catalog:",
+    "@types/node": "^24.1.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^26.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "rollup-plugin-node-externals": "^8.1.1",
     "tslib": "^2.8.1",
     "vite": "^8.1.5",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "catalog:",
+    "vitest": "^4.1.0",
     "zod": "^4.3.6"
   },
   "publishConfig": {
@@ -86,13 +80,5 @@
         "require": "./dist/server.cjs"
       }
     }
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx,json,css,md}": [
-      "prettier --write"
-    ],
-    "*.{ts,tsx}": [
-      "eslint --max-warnings=0 --fix"
-    ]
   }
 }

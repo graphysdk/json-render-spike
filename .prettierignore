@@ -1,0 +1,4 @@
+dist/
+lib/
+.next/
+pnpm-lock.yaml

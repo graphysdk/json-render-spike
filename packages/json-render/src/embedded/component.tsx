@@ -20,7 +20,6 @@ export interface GraphyChartComponentRenderProps {
   /** Host-chosen style override. When set it wins over a `style` authored on the props. */
   chartStyle?: ChartStyleName;
   /** The host's streaming flag. While true the chart renders as much as the streamed props can already draw, holding a placeholder until they can. */
-  // eslint-disable-next-line react/boolean-prop-naming -- mirrors the host registry's ComponentContext field, which a wrapper spreads through verbatim
   loading?: boolean;
 }
 

@@ -1,29 +1,20 @@
-import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
-import { defineConfig, mergeConfig } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
 
-import { browserVitestConfig } from '@graphytools/vitest-config';
+process.env.TZ = 'utc';
 
-const globalSetup = Array.isArray(browserVitestConfig.test?.setupFiles) ? browserVitestConfig.test.setupFiles : [];
-
-// Mounting the chart component reaches the real react-renderer, whose `.css.ts` files need the
-// vanilla-extract plugin. That plugin compiles them in a separate SSR Vite server which ignores our
-// `local` resolve condition, so workspace deps reached from there fall back to a `dist` that a clean
-// checkout does not have — alias the ones in that graph to their sources.
-const sourceEntry = (pkg: string) => new URL(`../${pkg}/src/index.ts`, import.meta.url).pathname;
-
-// eslint-disable-next-line import-x/no-default-export
-export default mergeConfig(
-  browserVitestConfig,
-  defineConfig({
-    plugins: [vanillaExtractPlugin()],
-    resolve: {
-      alias: [
-        { find: /^@graphysdk\/viz-engine$/, replacement: sourceEntry('viz-engine') },
-        { find: /^@graphysdk\/i18n$/, replacement: sourceEntry('i18n') },
-      ],
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.spec.ts', 'src/**/*.spec.tsx'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
+    setupFiles: ['./src/vitest.setup.ts'],
+    server: {
+      deps: {
+        // The published dists import lodash-es subpaths without extensions, which only a
+        // bundler resolves — so let Vite transform them instead of Node.
+        inline: [/@graphysdk\//],
+      },
     },
-    test: {
-      setupFiles: [...globalSetup, './src/vitest.setup.ts'],
-    },
-  })
-);
+  },
+});

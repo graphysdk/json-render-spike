@@ -1,9 +1,8 @@
 {
-  "extends": "@graphytools/typescript-config/base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
-    "customConditions": ["local"],
     "types": ["node", "vitest/globals"]
   },
   "include": ["src/**/*"]
